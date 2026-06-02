@@ -233,6 +233,126 @@
   - 预留 `tooling/scripts/create-app`：fork apps/admin 骨架的脚本接口
   - _Requirements: 1.2, 2.5_
 
+- [x] 19. 登录页视觉完善
+  - [x] 19.1 实现品牌 Logo 区与整体布局结构
+    - 在 `pages/login/index.tsx` 顶部添加 Logo 容器（高度 80px），渲染占位 SVG 图标（高度 48px）与系统名称"Keel Admin"，水平居中对齐
+    - 背景层：根元素设置 `min-height: 100vh`，背景 `linear-gradient(135deg, rgba(10,132,255,0.08), rgba(94,200,250,0.06))`，铺满 `100vw × 100vh`
+    - _Requirements: 21.1, 21.7_
+
+  - [x] 19.2 实现毛玻璃卡片与响应式宽度
+    - 登录卡片 `Card` 设置 `bordered={false}`、`borderRadius ≥ 16px`、`backdrop-filter: blur(20px) saturate(180%)`
+    - 卡片宽度：视口 ≥ 768px 时固定 400px，< 768px 时 `calc(100vw - 32px)`
+    - _Requirements: 21.8_
+
+  - [x] 19.3 实现完整表单元素与交互逻辑
+    - 用户名输入框（前缀 `UserOutlined`）、密码输入框（前缀 `LockOutlined`，type="password"）、"记住我"Checkbox、"登录"Button 四个核心元素
+    - 空值提交校验：字段为空时展示内联错误文案，不发起请求
+    - Enter 键提交：密码输入框 `onPressEnter` 触发与点击按钮完全相同的提交逻辑
+    - loading 状态：请求进行中按钮显示旋转图标，整个表单（所有输入框、Checkbox、Button）设置 `disabled={true}`
+    - _Requirements: 21.2, 21.3, 21.4, 21.9_
+
+  - [x] 19.4 实现登录成功/失败处理与重定向
+    - 登录失败：表单上方展示 AntD `Alert`（type="error"），文案优先取后端 `message`，回退 i18n 键 `auth.login.error`；下次提交时清除 Alert
+    - 登录成功：`navigate(target, { replace: true })`，target 优先取 `?redirect` query 参数（仅接受 `/` 开头的相对路径），回退到 `/`
+    - _Requirements: 21.5, 21.6_
+
+  - [x] 19.5 实现"记住我"localStorage 持久化
+    - 勾选"记住我"并登录成功后，以键名 `keel_remembered_username`（过期 30 天）写入 localStorage
+    - 页面初始化时读取该键，预填用户名并勾选 Checkbox
+    - _Requirements: 21.10_
+
+  - [x] 19.6 移动端适配
+    - 视口 < 768px 时保持单列布局
+    - 所有可交互元素 touch target 高度 ≥ 44px、宽度 ≥ 44px，相邻元素垂直间距 ≥ 8px
+    - _Requirements: 21.11_
+
+- [ ] 20. BasicLayout 首页框架完善（含 Dashboard 页）
+  - [x] 20.1 完善 Sider 响应式折叠与过渡动效
+    - Sider 宽度 240px，折叠后 80px，CSS `transition: width 200ms ease`（不超过 300ms）
+    - 折叠按钮点击：触发过渡并同步 `appStore.collapsed` 取反
+    - 视口首次低于 1024px 时自动 `collapsed: true`，重新超过 1024px 时恢复折叠前状态
+    - `userStore.menus` 为空时 Sider 菜单区渲染"暂无菜单"（zh-CN）/ "No menu"（en-US）占位提示，不抛出异常
+    - _Requirements: 22.1, 22.2, 22.3, 22.13_
+
+  - [x] 20.2 完善 Header 右侧操作区
+    - 从左到右依次渲染：租户切换 Dropdown（仅当 `tenantStore.list.length > 0` 时显示）、语言切换 Dropdown（zh-CN / en-US）、明暗主题切换 Button、用户 Dropdown（展示 `userInfo.displayName`，含"个人信息"与"退出登录"）
+    - _Requirements: 22.7_
+
+  - [x] 20.3 完善退出登录流程
+    - 依次执行：调用 `authService.logout()`（失败时不阻断）→ 所有 store `reset()` → `tokenManager.clear()` → `navigate('/login', { replace: true })`
+    - _Requirements: 22.8_
+
+  - [ ] 20.4 完善 Breadcrumb 动态更新
+    - 路由路径变化时，在 200ms 内基于 `userStore.menus` 树解析祖先链，根节点为首页，格式"一级菜单 / 二级菜单"
+    - 路由不在菜单树中时，仅显示首页节点
+    - _Requirements: 22.4_
+
+  - [~] 20.5 完善 Tabs Bar 页签管理
+    - 首次访问新路由：在末尾追加页签并激活；路由已存在时直接激活，不追加重复项
+    - `affix: true` 的页签不渲染关闭按钮；关闭普通页签后优先激活右侧相邻页签，否则激活左侧，若 Tabs 为空则跳转 `/`
+    - _Requirements: 22.5, 22.6_
+
+  - [~] 20.6 实现 Dashboard 页
+    - 路由 `/dashboard`：渲染欢迎标题（zh-CN：`你好，{displayName}！`，en-US：`Hello, {displayName}!`）与当前日期（zh-CN：`YYYY年MM月DD日`，en-US：`MMMM D, YYYY`），使用 `PageContainer` 包裹
+    - 统计卡片区：恰好 4 张卡片（今日用户数、在线租户数、待处理工单数、系统状态），数据由前端静态 Mock 提供，每张卡片 `borderRadius ≥ 16px`、`boxShadow: 0 2px 8px rgba(0,0,0,0.06)`、`bordered={false}`
+    - _Requirements: 22.9, 22.10_
+
+  - [~] 20.7 确保语言/主题平滑切换与内容区滚动行为
+    - 语言切换：Sider 菜单、Header 控件、Breadcrumb、Tabs 标题在同一 React 更新批次内同步更新，不刷页面
+    - 主题切换：ConfigProvider `theme` prop 在同一渲染周期更新，BasicLayout 及子组件 100ms 内完成重绘，不触发 `window.location.reload()`
+    - 内容区 `overflow: auto`，Sider（sticky）与 Header（`position: sticky, top: 0`）不随内容区滚动
+    - _Requirements: 22.11, 22.12, 22.14_
+
+- [ ] 21. 用户管理 CRUD 页面 Pro-Components 重构
+  - [~] 21.1 用 ProTable 替换现有用户列表
+    - 将 `pages/system/user/index.tsx` 的列表重构为 `ProTable<UserInfo>`，数据加载通过 `request` prop 直接驱动，返回类型 `{ data: UserInfo[]; success: boolean; total: number }`，不使用 `useTable` hook
+    - 默认列：username、displayName、email（挂 `permission: 'user:list'`）、roles（Tag 列表）、操作列（编辑/删除按钮）
+    - 工具栏强制开启：`setting: true`、`reload: true`、`density: true`、`fullScreen: true`（不可禁用）
+    - _Requirements: 23.1, 23.2, 23.10, 23.13_
+
+  - [~] 21.2 实现 ProTable 搜索表单与分页
+    - 搜索区字段：`keyword`（字符串，模糊匹配）与 `status`（枚举 `'active' | 'disabled' | undefined`），透传给 `userService.list` 查询参数
+    - 分页：`defaultPageSize: 10`，分页器左侧展示总记录数（zh-CN：`共 N 条`，en-US：`Total N items`）
+    - 重置按钮：清空 `keyword`/`status` 为 `undefined`，以 `{ current: 1, pageSize: 10 }` 重新调用
+    - _Requirements: 23.3, 23.4, 23.14_
+
+  - [~] 21.3 实现新建用户 Modal（ProForm）
+    - "新建用户"按钮被 `<Auth code="user:create">` 包裹，持有权限时点击打开 `Create_Modal`
+    - 表单字段：用户名（必填，maxLength 64，重复时字段下方提示"用户名已存在"）、显示名（必填，maxLength 64）、邮箱（选填，email 格式校验）、初始密码（必填，minLength 6，maxLength 128）、角色（多选，admin / editor / viewer）
+    - 提交成功：关闭 Modal、刷新列表、`message.success`（zh-CN：`操作成功`，en-US：`Success`）
+    - 提交失败：保持 Modal 打开，在 Form 顶部通过 Alert（type="error"）展示 `BizError.message`，回退 i18n 键 `common.error.unknown`
+    - _Requirements: 23.5, 23.7_
+
+  - [~] 21.4 实现编辑用户 Modal（ProForm）
+    - 编辑按钮被 `<Auth code="user:update">` 包裹，点击打开预填当前行数据的 ProForm
+    - 用户名字段 `disabled={true}` 不可修改，密码字段不渲染，其余字段（显示名、邮箱、角色）可编辑
+    - 成功/失败处理同新建 Modal
+    - _Requirements: 23.6, 23.7_
+
+  - [~] 21.5 实现删除用户 Popconfirm
+    - 删除按钮被 `<Auth code="user:delete">` 包裹，点击弹出二次确认
+    - 确认文案 zh-CN：`确定删除用户 "{displayName}" 吗？`，确认后调用 `userService.remove(id)`，成功后刷新表格并展示 `message.success`
+    - _Requirements: 23.8_
+
+  - [~] 21.6 确保权限守卫与列权限过滤
+    - 无权限时新建/编辑/删除按钮从 DOM 中移除（不渲染），不影响其他元素布局
+    - email 列通过 `filterColumnsByPermission` 过滤（不持有 `user:list` 时移除该列）
+    - _Requirements: 23.9, 23.10_
+
+  - [~] 21.7 补全 Mock Handler 支持完整 CRUD
+    - 在 `mock/user.ts` 中确保以下 handler 存在且正确信封化：GET `/api/users`（支持 keyword/status/分页参数）、POST `/api/users`、PUT `/api/users/:id`、DELETE `/api/users/:id`
+    - _Requirements: 23.11_
+
+  - [~] 21.8 验证 pro-components 依赖缺失时构建中断行为
+    - 在 env-validator 或 vite.config.ts 中添加检测：若 `@ant-design/pro-components` 解析失败，输出包含安装命令 `pnpm add @ant-design/pro-components --filter @keel/admin` 的错误信息并中断构建
+    - _Requirements: 23.12_
+
+- [~] 22. 最终检查点：新增需求全面验收
+  - 在 mock 模式下完整走通登录页（含"记住我"、移动端、Enter 提交、重定向）
+  - 在 mock 模式下完整走通 BasicLayout（折叠动效、Dashboard 页、语言/主题切换、Tabs/Breadcrumb 联动）
+  - 在 mock 模式下完整走通用户管理 ProTable CRUD（搜索、分页、新建、编辑、删除、权限列过滤）
+  - 确保 Requirements 21、22、23 对应的单元测试与 E2E 用例全部通过
+
 ## Task Dependency Graph
 
 下图描述任务之间的强制依赖关系（"A → B" 表示 A 必须先完成）。无连线的任务可并行推进。
@@ -279,6 +399,36 @@
       "wave": 8,
       "description": "测试基础设施（贯穿，最终收口）",
       "tasks": ["15"]
+    },
+    {
+      "wave": 9,
+      "description": "登录页视觉完善 - 布局与样式（依赖 9.4）",
+      "tasks": ["19.1", "19.2"]
+    },
+    {
+      "wave": 10,
+      "description": "登录页交互逻辑 + BasicLayout 框架完善（依赖 wave 9 / 9.3）",
+      "tasks": ["19.3", "19.4", "19.5", "19.6", "20.1", "20.2", "20.3", "20.4", "20.5"]
+    },
+    {
+      "wave": 11,
+      "description": "Dashboard 页与平滑切换（依赖 20.1–20.5）",
+      "tasks": ["20.6", "20.7"]
+    },
+    {
+      "wave": 12,
+      "description": "用户管理 ProTable 重构基础（依赖 wave 11 + 任务 10/11）",
+      "tasks": ["21.1", "21.2", "21.8"]
+    },
+    {
+      "wave": 13,
+      "description": "用户管理 Modal、删除、权限守卫（依赖 21.1）",
+      "tasks": ["21.3", "21.4", "21.5", "21.6", "21.7"]
+    },
+    {
+      "wave": 14,
+      "description": "最终检查点（依赖所有新增任务）",
+      "tasks": ["22"]
     }
   ]
 }
@@ -324,11 +474,19 @@ graph TD
     T9 --> T17[17. 性能优化]
     T9 --> T18[18. 文档与脚手架]
     T2 --> T18
+    T9_4 --> T19[19. 登录页视觉完善]
+    T9_3 --> T20[20. BasicLayout + Dashboard]
+    T10 --> T21[21. 用户管理 ProTable 重构]
+    T11 --> T21
+    T20 --> T21
+    T19 --> T22[22. 最终检查点]
+    T20 --> T22
+    T21 --> T22
 ```
 
 **关键路径**（最长依赖链，决定整体交付时间）：
 
-`1 → 2 → 3 → {4, 5, 6, 7} → 8 → 9 → 9.3/9.5 → 10 → 15`
+`1 → 2 → 3 → {4, 5, 6, 7} → 8 → 9 → 9.3/9.5 → 10 → 21 → 22`
 
 **可并行批次**：
 
@@ -336,6 +494,8 @@ graph TD
 - Batch B（依赖 T9）：T11、T16、T17、T18 可同时推进
 - Batch C（依赖 T9.5 / T8）：T10 与 T15 内部 PBT 可穿插
 - Batch D（依赖 T1）：T12、T14 可与共享包工作并行（不阻塞主线）
+- Batch E（依赖 T9.4 / T9.3）：T19 与 T20 可并行推进
+- Batch F（依赖 T19 / T20 / T21）：T22 为统一验收门禁
 
 ## Notes
 
@@ -351,6 +511,7 @@ graph TD
 - **Pro-Components 主题嫁接**：任务 8 的视觉一致性依赖任务 7 的 token 设计，建议先完成 7 再启动 8
 - **E2E 稳定性**：任务 15 的 Playwright 用例需要 mock 层（任务 11）作为前置条件，避免依赖真实后端导致 CI flaky
 - **Monorepo 类型路径解析**：任务 1 的 `tsconfig paths` 配置错误会导致 IDE 与构建解析不一致，需在 1.1 阶段验证
+- **毛玻璃兼容性**：`backdrop-filter` 在部分旧版 Chrome/Safari 需前缀，建议在 19.2 验证 cross-browser
 
 ### 与 Design 的对照
 

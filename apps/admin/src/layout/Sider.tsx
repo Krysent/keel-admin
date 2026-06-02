@@ -23,9 +23,22 @@
  *   component using `useTranslation`. That way, switching language
  *   triggers a re-render of the labels without needing to invalidate
  *   the upstream menu data.
+ *
+ * Responsive collapse (Req 22.1–22.3):
+ *   - Sider is 240px wide, collapses to 80px with `transition: width
+ *     200ms ease` on the inner element.
+ *   - A ResizeObserver watches the document root; the first time the
+ *     viewport drops below 1024px it forces `collapsed: true`. When the
+ *     viewport grows back above 1024px, the pre-collapse state is
+ *     restored.
+ *
+ * Empty menus (Req 22.13):
+ *   When `userStore.menus` is empty, the menu region renders a
+ *   localised placeholder instead of an empty AntD Menu, so no
+ *   JS exception is thrown and the user gets useful feedback.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useMemo, useState, type ReactNode } from 'react';
 import { Layout, Menu } from 'antd';
 import * as AntIcons from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -40,6 +53,9 @@ import {
 } from './lib/menu-tree.js';
 
 const { Sider: AntSider } = Layout;
+
+/** Viewport breakpoint for auto-collapse (Req 22.3). */
+const COLLAPSE_BREAKPOINT = 1024;
 
 /**
  * Best-effort icon lookup — `MenuNode.icon` is a free-form string
@@ -90,7 +106,64 @@ export function Sider(): JSX.Element {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  /**
+   * Track the collapsed state that was in place *before* a viewport-triggered
+   * auto-collapse. When the viewport grows back above the breakpoint we restore
+   * this value instead of always uncollapsing, so a user who had manually
+   * collapsed before narrowing the window keeps their preference (Req 22.3).
+   */
+  const collapsedBeforeBreakpoint = useRef<boolean | null>(null);
+
+  /**
+   * Whether the viewport is currently below the breakpoint. We start by
+   * measuring on mount so that SSR / test environments don't get a wrong
+   * initial read.
+   */
+  const isBelowBreakpoint = useRef(
+    typeof window !== 'undefined' && window.innerWidth < COLLAPSE_BREAKPOINT,
+  );
+
+  // Responsive auto-collapse via ResizeObserver (Req 22.3).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      const below = window.innerWidth < COLLAPSE_BREAKPOINT;
+
+      if (below && !isBelowBreakpoint.current) {
+        // Crossing the breakpoint downward for the first time — save state
+        // and force collapse.
+        isBelowBreakpoint.current = true;
+        collapsedBeforeBreakpoint.current = collapsed;
+        setCollapsed(true);
+      } else if (!below && isBelowBreakpoint.current) {
+        // Crossing back upward — restore the pre-collapse state.
+        isBelowBreakpoint.current = false;
+        if (collapsedBeforeBreakpoint.current !== null) {
+          setCollapsed(collapsedBeforeBreakpoint.current);
+          collapsedBeforeBreakpoint.current = null;
+        }
+      }
+    };
+
+    // Use ResizeObserver on document.documentElement for reliable viewport
+    // width tracking without layout-thrash polling.
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(document.documentElement);
+
+    // Run once on mount to apply the initial breakpoint state.
+    handleResize();
+
+    return () => {
+      observer.disconnect();
+    };
+    // `collapsed` is intentionally excluded from the deps — we only want
+    // to read it at the moment the breakpoint is first crossed, not re-run
+    // the effect every time the user manually toggles.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setCollapsed]);
 
   // Build the AntD-shaped item tree once per `menus` change. The
   // translation pass below is cheap and re-runs on language change.
@@ -111,14 +184,30 @@ export function Sider(): JSX.Element {
   // right leaf even when the user navigates by typing.
   const selectedKeys = [location.pathname];
 
+  /**
+   * Empty-menu placeholder text (Req 22.13).
+   * zh-CN: "暂无菜单", en-US: "No menu".
+   * Uses a dedicated i18n key with locale-aware defaultValue fallbacks so the
+   * placeholder is correct even before the translation bundle loads.
+   */
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
+  const emptyMenuText = t('sider.noMenu', {
+    defaultValue: isZhCN ? '暂无菜单' : 'No menu',
+  });
+
   return (
     <AntSider
       width={240}
+      collapsedWidth={80}
       collapsible
       collapsed={collapsed}
       onCollapse={setCollapsed}
-      breakpoint="lg"
-      style={{ background: 'transparent' }}
+      trigger={null}
+      style={{
+        background: 'transparent',
+        transition: 'width 200ms ease',
+        overflow: 'hidden',
+      }}
     >
       <div
         style={{
@@ -128,19 +217,37 @@ export function Sider(): JSX.Element {
           justifyContent: 'center',
           fontWeight: 600,
           fontSize: 16,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
         }}
       >
         {collapsed ? 'K' : 'Keel Admin'}
       </div>
-      <Menu
-        mode="inline"
-        items={translatedItems}
-        selectedKeys={selectedKeys}
-        openKeys={openKeys}
-        onOpenChange={setOpenKeys}
-        onClick={(info) => navigate(info.key)}
-        style={{ borderInlineEnd: 'none', background: 'transparent' }}
-      />
+      {translatedItems.length === 0 ? (
+        /* Empty-menus placeholder — Req 22.13. */
+        <div
+          style={{
+            padding: '24px 16px',
+            textAlign: 'center',
+            color: 'rgba(0, 0, 0, 0.45)',
+            fontSize: 14,
+            whiteSpace: collapsed ? 'nowrap' : 'normal',
+            overflow: 'hidden',
+          }}
+        >
+          {collapsed ? null : emptyMenuText}
+        </div>
+      ) : (
+        <Menu
+          mode="inline"
+          items={translatedItems}
+          selectedKeys={selectedKeys}
+          openKeys={openKeys}
+          onOpenChange={setOpenKeys}
+          onClick={(info) => navigate(info.key)}
+          style={{ borderInlineEnd: 'none', background: 'transparent' }}
+        />
+      )}
     </AntSider>
   );
 }

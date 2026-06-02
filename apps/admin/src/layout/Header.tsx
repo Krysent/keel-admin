@@ -29,10 +29,14 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { useAppStore } from '../stores/app.store.js';
 import { useTenantStore } from '../stores/tenant.store.js';
 import { useUserStore } from '../stores/user.store.js';
+import { runLogoutFlow } from '../auth/logout-flow.js';
+import { authService } from '../services/auth.service.js';
+import { tokenManager } from '../services/http.js';
 import { Breadcrumb } from './Breadcrumb.js';
 
 const { Header: AntHeader } = Layout;
@@ -57,7 +61,11 @@ export function Header(): JSX.Element {
 
   const userInfo = useUserStore((s) => s.userInfo);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+
+  /** True when the active language is Chinese (zh-CN or any zh-* variant). */
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
 
   // Build dropdown items for each switcher. Kept inline because they're
   // tiny and rebuilding on every render is cheaper than the memo logic
@@ -87,16 +95,32 @@ export function Header(): JSX.Element {
     items: [
       {
         key: 'profile',
-        label: t('header.user.profile', { defaultValue: 'Profile' }),
+        label: t('header.user.profile', {
+          defaultValue: isZhCN ? '个人信息' : 'Profile',
+        }),
       },
       { type: 'divider' },
       {
         key: 'logout',
-        label: t('header.user.logout', { defaultValue: 'Sign out' }),
-        // Wiring to /auth/logout lands in task 9.4 along with the
-        // login page — see `auth.service.ts` plan in task 9.5.
+        label: t('header.user.logout', {
+          defaultValue: isZhCN ? '退出登录' : 'Sign out',
+        }),
       },
     ],
+    onClick: async (info) => {
+      if (info.key === 'logout') {
+        await runLogoutFlow({
+          services: { logout: () => authService.logout() },
+          tokenManager,
+          stores: {
+            resetUser: () => useUserStore.getState().reset(),
+            resetTenant: () => useTenantStore.getState().reset(),
+            resetApp: () => useAppStore.getState().reset(),
+          },
+        });
+        navigate('/login', { replace: true });
+      }
+    },
   };
 
   return (
@@ -106,6 +130,8 @@ export function Header(): JSX.Element {
         alignItems: 'center',
         gap: 16,
         padding: '0 16px',
+        height: 56,
+        lineHeight: '56px',
         // The frosted-glass styling lives in `@keel/theme/global.css`.
         // The header just sets the correct AntD layout class via being
         // an `<AntHeader>`.
@@ -127,7 +153,7 @@ export function Header(): JSX.Element {
           <Dropdown menu={tenantMenu} trigger={['click']} placement="bottomRight">
             <Button type="text" icon={<TeamOutlined />}>
               {currentTenant?.name ?? t('header.tenant.placeholder', {
-                defaultValue: 'Tenant',
+                defaultValue: isZhCN ? '切换租户' : 'Tenant',
               })}
             </Button>
           </Dropdown>
@@ -147,7 +173,7 @@ export function Header(): JSX.Element {
         <Dropdown menu={userMenu} trigger={['click']} placement="bottomRight">
           <Button type="text" icon={<UserOutlined />}>
             {userInfo?.displayName ?? t('header.user.guest', {
-              defaultValue: 'Guest',
+              defaultValue: isZhCN ? '访客' : 'Guest',
             })}
           </Button>
         </Dropdown>

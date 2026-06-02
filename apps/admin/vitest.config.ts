@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 
 /**
  * Vitest config for `@keel/admin`.
@@ -13,8 +14,9 @@ import { defineConfig } from 'vitest/config';
  * Validates: Requirements 15.1, 15.5
  */
 export default defineConfig({
+  plugins: [react()],
   test: {
-    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
     reporters: ['default'],
     watch: false,
     testTimeout: 15000,

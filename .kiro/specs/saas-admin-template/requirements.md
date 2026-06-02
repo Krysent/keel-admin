@@ -265,6 +265,66 @@
 4. WHERE 该示例 THE 系统 SHALL 同时被 Playwright E2E 用例覆盖
 
 
+### Requirement 21: 登录页视觉完善
+
+**User Story:** 作为访问系统的用户，我希望登录页具备完整的 SaaS 品牌感与类 iOS 视觉体验，以便在第一印象上建立对产品的信任感。
+
+#### Acceptance Criteria
+
+1. Login_Page SHALL 在表单卡片顶部展示品牌 Logo 图标（或占位 SVG，高度固定 48px）与系统名称（默认 "Keel Admin"），Logo 区容器高度 80px，Logo 图标与名称水平居中对齐
+2. WHEN Login_Page 初次渲染 THEN Login_Page SHALL 显示用户名输入框（前缀图标 UserOutlined）、密码输入框（前缀图标 LockOutlined、类型 password）、"记住我"Checkbox 与"登录"按钮四个核心表单元素，且四个元素均在视口中可见
+3. IF 用户点击"登录"按钮时用户名或密码为空 THEN Login_Form SHALL 在对应字段下方展示内联错误文案，且不发起任何网络请求
+4. WHILE 登录请求正在进行中 THE Login_Button SHALL 呈现 loading 旋转图标，且整个表单（所有输入框、Checkbox、按钮）SHALL 处于禁用态（`disabled={true}`），以防重复提交
+5. WHEN 后端返回认证失败（业务码 40100 或 HTTP 401） THEN Login_Page SHALL 在表单上方展示 AntD `Alert` 组件（type="error"）形式的内联错误提示，文案优先取后端响应的 `message` 字段，回退为 i18n 键 `auth.login.error` 的默认值；WHEN 用户再次发起登录请求时 THEN Login_Page SHALL 清除上次的 Alert 提示
+6. WHEN 登录成功 THEN Login_Page SHALL 以 `navigate(target, { replace: true })` 导航到目标路由，其中 target 优先取 URL query 参数 `?redirect`（仅接受以 `/` 开头的相对路径，拒绝 `http(s)://` 开头的绝对 URL），回退到 `/`
+7. Login_Page 背景 SHALL 渲染低饱和度渐变（CSS 值：`linear-gradient(135deg, rgba(10,132,255,0.08), rgba(94,200,250,0.06))`），背景铺满 `100vw × 100vh`
+8. Login_Card SHALL 应用毛玻璃样式（`backdrop-filter: blur(20px) saturate(180%)`）、`borderRadius` ≥ 16px、AntD Card `bordered={false}`；卡片宽度在视口宽度 ≥ 768px 时固定为 400px，在视口宽度 < 768px 时宽度为 `calc(100vw - 32px)`（左右各留 16px 边距）
+9. WHEN 用户在密码输入框按下 Enter 键 THEN Login_Form SHALL 触发与点击"登录"按钮完全相同的提交逻辑（包含字段校验）
+10. WHEN 用户勾选"记住我"并登录成功 THEN Login_Page SHALL 以键名 `keel_remembered_username`、过期时间 30 天将用户名写入 localStorage；WHEN 用户下次访问 Login_Page THEN Login_Page SHALL 读取该键并将用户名预填到用户名输入框，同时勾选"记住我"
+11. IF 页面在视口宽度 < 768px 的移动端渲染 THEN Login_Page SHALL 保持单列布局，所有可交互表单元素的 touch target 高度 ≥ 44px、宽度 ≥ 44px，且相邻元素间的垂直间距 ≥ 8px
+
+### Requirement 22: BasicLayout 首页框架完善（含 Dashboard 页）
+
+**User Story:** 作为登录后的用户，我希望进入主界面后看到功能完整的框架布局与欢迎仪表盘，以便快速定位各功能入口并了解系统概要。
+
+#### Acceptance Criteria
+
+1. WHEN 用户登录成功后进入受保护路由 THEN BasicLayout SHALL 渲染完整的三区域框架：左侧可折叠 Sider（宽度 240px，折叠后 80px）、右侧顶部 Header（高度固定 56px）、以及内容区（含 Tabs + Outlet）
+2. WHEN 用户点击 Header 中的菜单折叠按钮 THEN Sider SHALL 在 240px 与 80px 之间以 CSS `transition: width 200ms ease` 平滑过渡（不超过 300ms），并同步将 `appStore.collapsed` 状态取反
+3. WHEN 浏览器视口宽度首次低于 1024px（lg 断点）时 THEN Sider SHALL 自动设置 `collapsed: true` 并触发与手动折叠相同的过渡效果；WHEN 视口宽度重新超过 1024px 时 THEN Sider SHALL 恢复为折叠前的 `collapsed` 状态
+4. WHEN 路由路径变化 THEN Breadcrumb SHALL 在 200ms 内更新为当前路由的祖先路径链（基于 `userStore.menus` 树解析），根节点为首页，格式为"一级菜单 / 二级菜单"；IF 当前路由在菜单树中不存在对应节点 THEN Breadcrumb SHALL 仅显示首页节点
+5. WHEN 用户首次访问某个路由 IF 该路由在 Tabs_Bar 中不存在对应页签 THEN Tabs_Bar SHALL 在末尾追加该路由的页签并将其设为激活态；IF 该路由已存在对应页签 THEN Tabs_Bar SHALL 直接激活已有页签，不追加重复项
+6. WHEN 用户点击 Tabs_Bar 中的关闭按钮 IF 页签的 `affix` 属性为 `true` THEN Tabs_Bar SHALL 不渲染该页签的关闭按钮；IF `affix` 为 `false` THEN Tabs_Bar SHALL 关闭该页签并优先激活其右侧相邻页签，若不存在右侧页签则激活左侧相邻页签，若关闭后 Tabs_Bar 为空则跳转到 `/`
+7. Header 右侧操作区 SHALL 从左到右依次渲染：租户切换 Dropdown（仅当 `tenantStore.list.length > 0` 时显示）、语言切换 Dropdown（选项 zh-CN / en-US）、明暗主题切换 Button、用户 Dropdown（展示 `userInfo.displayName`，菜单项含"个人信息"与"退出登录"）
+8. WHEN 用户点击"退出登录" THEN Logout_Flow SHALL 依次执行：调用 `authService.logout()`（失败时仍继续后续步骤，不阻断流程）、调用所有 store 切片的 `reset()`、调用 `tokenManager.clear()`，最后以 `navigate('/login', { replace: true })` 跳转
+9. WHEN 用户访问 `/dashboard` 路由 THEN Dashboard_Page SHALL 渲染欢迎标题（格式：当 locale 为 zh-CN 时 `你好，{userInfo.displayName}！`，当 locale 为 en-US 时 `Hello, {userInfo.displayName}!`）与当前日期（格式：zh-CN 用 `YYYY年MM月DD日`，en-US 用 `MMMM D, YYYY`），欢迎区使用 `PageContainer` 或等价容器组件
+10. Dashboard_Page 统计卡片区 SHALL 展示恰好 4 张统计卡片（今日用户数、在线租户数、待处理工单数、系统状态），卡片数据由前端静态 Mock 数值提供，每张卡片 `borderRadius` ≥ 16px、`boxShadow` 使用轻量外阴影（`0 2px 8px rgba(0,0,0,0.06)`）、`bordered={false}`
+11. WHEN 用户切换语言（调用 `i18next.changeLanguage`） THEN Sider 菜单文案、Header 控件标签、Breadcrumb 路径名称、Tabs_Bar 页签标题 SHALL 在同一渲染周期内（不超过一次 React 更新批次）同步更新，无需刷新页面
+12. WHEN 用户切换主题（light ↔ dark） THEN ConfigProvider 的 `theme` prop SHALL 在同一渲染周期内更新为对应 token 集，BasicLayout 及其所有子组件 SHALL 在 100ms 内完成重绘，不触发页面 `window.location.reload()`
+13. IF `userStore.menus` 为空数组 THEN Sider 菜单区域 SHALL 渲染文案"暂无菜单"（zh-CN）/ "No menu"（en-US）的占位提示，不抛出 JavaScript 异常
+14. Content 区域 SHALL 设置 `overflow: auto` 实现独立滚动，Sider（`position: sticky` 或 AntD Layout 固定模式）与 Header（`position: sticky, top: 0`）SHALL 在内容区滚动时保持可见，不随内容区一同滚动
+
+### Requirement 23: 用户管理 CRUD 页面 Pro-Components 重构
+
+**User Story:** 作为系统管理员，我希望用户管理页面基于 `@ant-design/pro-components` 的 ProTable + ProForm 重构，以便获得开箱即用的搜索、列设置、密度切换与表单校验能力。
+
+#### Acceptance Criteria
+
+1. WHEN 用户访问 `/system/user` THEN UserManagement_Page SHALL 渲染基于 `ProTable<UserInfo>` 的用户列表，默认显示列：用户名（dataIndex: username）、显示名（dataIndex: displayName）、邮箱（dataIndex: email）、角色（dataIndex: roles，渲染为 Tag 列表）、操作列（含编辑/删除按钮）
+2. UserManagement_Page ProTable 工具栏 SHALL 默认开启以下四项 toolbar option 且对业务开发者不可禁用：列设置（`setting: true`）、刷新（`reload: true`）、密度切换（`density: true`）、全屏切换（`fullScreen: true`）
+3. WHEN 用户在 ProTable 顶部搜索区提交搜索 THEN Search_Form SHALL 收集字段名为 `keyword`（字符串，模糊匹配用户名/显示名）与 `status`（枚举 `'active' | 'disabled' | undefined`）的值，并将这两个参数透传给 `userService.list` 的查询参数
+4. WHEN `userService.list` 返回分页数据 THEN ProTable SHALL 渲染分页器，`defaultPageSize` 为 10，并在分页器左侧展示总记录数（格式 zh-CN：`共 N 条`，格式 en-US：`Total N items`）
+5. WHILE 用户持有 `user:create` 权限码 WHEN 用户点击工具栏"新建用户"按钮 THEN Create_Modal SHALL 打开包含以下 ProFormItem 的表单：用户名（必填，maxLength 64，submit 时如与已有用户名重复则在字段下方显示"用户名已存在"提示）、显示名（必填，maxLength 64）、邮箱（选填，HTML5 email 格式校验）、初始密码（必填，minLength 6，maxLength 128）、角色（多选 Select，选项：admin / editor / viewer）
+6. WHILE 用户持有 `user:update` 权限码 WHEN 用户点击列表行编辑按钮 THEN Edit_Modal SHALL 打开预填当前行数据的 ProForm，用户名字段 SHALL 设置 `disabled={true}` 不可修改，密码字段 SHALL 不渲染，其余字段（显示名、邮箱、角色）可编辑
+7. WHEN ProForm 提交时所有字段校验通过 THEN Modal_Form SHALL 进入 `confirmLoading` 状态，调用对应 service 方法；WHEN 调用成功 THEN Modal SHALL 关闭并调用 ProTable 的 `reload` 刷新列表，同时展示 `message.success`（zh-CN：`操作成功`，en-US：`Success`）；IF 调用失败 THEN Modal SHALL 保持打开状态，在 Modal 内 Form 顶部通过 AntD Alert（type="error"）展示 `BizError.message`，回退为 i18n 键 `common.error.unknown`
+8. WHILE 用户持有 `user:delete` 权限码 WHEN 用户点击删除按钮 THEN Popconfirm SHALL 弹出二次确认，确认文案格式为 zh-CN：`确定删除用户 "{displayName}" 吗？`，确认后调用 `userService.remove(id)`，成功后刷新表格并展示 `message.success`
+9. WHEN 用户不持有对应权限码 THEN `<Auth code=...>` 包裹的"新建"、"编辑"、"删除"按钮 SHALL 从 DOM 中移除（`display: none` 或不渲染），不渲染禁用态占位，且不影响页面其他元素的布局
+10. 邮箱列（dataIndex: email）的 column 定义中 SHALL 挂载 `permission: 'user:list'`，当用户不持有 `user:list` 权限码时 `filterColumnsByPermission` 过滤函数 SHALL 从 columns 数组中移除该列，ProTable 不渲染该列
+11. WHEN 在 `VITE_USE_MOCK=true` 模式下访问 UserManagement_Page THEN 系统 SHALL 通过现有 `mock/user.ts` handlers 完整支持搜索（GET `/api/users?keyword=...&status=...`）、新建（POST `/api/users`）、编辑（PUT `/api/users/:id`）、删除（DELETE `/api/users/:id`）四个流程，不需要真实后端
+12. WHEN `@ant-design/pro-components` 在项目依赖中未找到（`import` 解析失败）时项目启动 THEN Vite 构建工具 SHALL 输出包含安装命令 `pnpm add @ant-design/pro-components --filter @keel/admin` 的错误信息并中断构建，不静默降级
+13. UserManagement_Page ProTable 的数据加载 SHALL 通过 ProTable `request` prop 直接驱动，`request` 函数返回类型为 `{ data: UserInfo[]; success: boolean; total: number }`，不使用已有的 `useTable` hook
+14. WHEN 用户点击 ProTable 搜索表单的"重置"按钮 THEN Search_Form SHALL 将 `keyword` 和 `status` 字段值清空为 `undefined`，并以 `{ current: 1, pageSize: 10 }` 的分页参数重新调用 `userService.list`
+
 ## Glossary
 
 - **Monorepo**：单仓库多包项目结构，本工程使用 `pnpm workspaces + Turborepo` 实现。

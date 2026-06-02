@@ -7,6 +7,13 @@
  * and the leaf labels are translated at render time, so a
  * `changeLanguage` re-render swaps the strings without invalidating
  * the data.
+ *
+ * Requirement 22.4:
+ *   - When the route IS found in the menu tree: prepend a "首页/Home"
+ *     root item (always a link to `/`) before the ancestor chain,
+ *     producing: "首页 / 一级菜单 / 二级菜单".
+ *   - When the route is NOT found in the menu tree: render only the
+ *     "首页/Home" node (instead of null).
  */
 
 import { useMemo } from 'react';
@@ -17,21 +24,38 @@ import { useTranslation } from 'react-i18next';
 import { useUserStore } from '../stores/user.store.js';
 import { findMenuPath } from './lib/menu-tree.js';
 
-export function Breadcrumb(): JSX.Element | null {
+export function Breadcrumb(): JSX.Element {
   const menus = useUserStore((s) => s.menus);
   const { pathname } = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  /** True when the active language is Chinese (zh-CN or any zh-* variant). */
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
 
   // `findMenuPath` returns the full chain (root → leaf). When the
   // pathname doesn't match anything in the menu (e.g. an exception
-  // page) we render nothing — the caller can decide on a fallback.
+  // page) `chain` is null — in that case we fall back to showing only
+  // the home node (Requirement 22.4).
   const chain = useMemo(
     () => findMenuPath(menus, pathname),
     [menus, pathname],
   );
-  if (!chain || chain.length === 0) return null;
 
-  const items = chain.map((node, idx) => {
+  const homeLabel = t('breadcrumb.home', {
+    defaultValue: isZhCN ? '首页' : 'Home',
+  });
+
+  // The home item is always first and always a link to `/`.
+  const homeItem = {
+    title: <Link to="/">{homeLabel}</Link>,
+  };
+
+  if (!chain || chain.length === 0) {
+    // Route not in menu tree — show only the home node.
+    return <AntBreadcrumb items={[homeItem]} />;
+  }
+
+  const menuItems = chain.map((node, idx) => {
     const isLast = idx === chain.length - 1;
     const label = t(node.title, { defaultValue: node.title });
     // Branch nodes (those with children) are not necessarily routable
@@ -42,5 +66,5 @@ export function Breadcrumb(): JSX.Element | null {
     };
   });
 
-  return <AntBreadcrumb items={items} />;
+  return <AntBreadcrumb items={[homeItem, ...menuItems]} />;
 }
