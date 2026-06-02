@@ -1,0 +1,62 @@
+{
+  "name": "@keel/i18n",
+  "version": "0.1.0",
+  "description": "i18n factory for keel-admin: createI18n with namespace lazy-load support, language detection, and HTTP backend wiring.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "echo 'lint @keel/i18n: no ESLint yet (will be wired in task 2 polish).'",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist .turbo"
+  },
+  "peerDependencies": {
+    "i18next": "^23.0.0",
+    "react": "^18.0.0",
+    "react-i18next": "^14.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-i18next": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@keel/types": "workspace:*",
+    "i18next-browser-languagedetector": "^7.2.1",
+    "i18next-http-backend": "^2.6.1"
+  },
+  "devDependencies": {
+    "@keel/eslint-config": "workspace:*",
+    "@vitest/coverage-v8": "^2.1.0",
+    "i18next": "^23.15.1",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.2"
+  }
+}

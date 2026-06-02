@@ -1,0 +1,41 @@
+/*
+ * @keel/theme — global CSS fragment for the iOS-themed admin shell.
+ *
+ * Stays in sync with `src/global-styles.ts#globalStyles`. Consumers can
+ * import this file directly:  `import '@keel/theme/global.css';`
+ */
+
+:root {
+  --keel-radius-card: 16px;
+  --keel-blur: blur(20px) saturate(180%);
+}
+
+body {
+  background: #F2F2F7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ant-layout-header {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: var(--keel-blur);
+  border-bottom: 1px solid rgba(60, 60, 67, 0.10);
+}
+
+.ant-modal-mask {
+  background: rgba(0, 0, 0, 0.30);
+  backdrop-filter: blur(8px);
+}
+
+.ant-card {
+  border: none;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(60, 60, 67, 0.18);
+  border-radius: 3px;
+}

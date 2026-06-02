@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Pipeline order matters: lint -> typecheck -> test -> build.
+      # Turbo handles ordering via dependsOn in turbo.json.
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Typecheck
+        run: pnpm turbo run typecheck
+
+      - name: Unit tests
+        run: pnpm turbo run test
+
+      - name: Build
+        run: pnpm turbo run build
+
+      # Task 2 / Requirement 2.3: PRs modifying packages/* must include a changeset.
+      - name: Verify changeset exists for package changes
+        if: github.event_name == 'pull_request'
+        run: |
+          # Check if any packages/* files changed in this PR
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'packages/' || true)
+          if [ -n "$CHANGED" ]; then
+            # If packages were changed, require a changeset file
+            CHANGESETS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+            if [ -z "$CHANGESETS" ]; then
+              echo "::error::PR modifies packages/* but no changeset file found. Run 'pnpm changeset' to add one."
+              exit 1
+            fi
+          fi
+
+      # Task 1.2: assert no cycles in the @keel/* workspace dependency graph.
+      - name: Check @keel/* package dependency graph for cycles
+        run: pnpm ci:check-cycles
+
+      # Task 11: validate mock handler envelope schema (Requirement 11.5).
+      - name: Validate mock response schema
+        run: pnpm ci:validate-mocks
+
+      # Task 16 / Requirement 18.5: dependency audit for security vulnerabilities.
+      - name: Security audit (npm audit)
+        run: npm audit --omit=dev
+        continue-on-error: true
+
+      # Task 1.1: assert turbo's incremental cache actually works.
+      - name: Verify Turborepo cache hit ratio
+        env:
+          TURBO_MIN_HIT_RATIO: '1.0'
+        run: pnpm ci:verify
+
+      - name: Upload admin build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-dist
+          path: apps/*/dist
+          if-no-files-found: ignore

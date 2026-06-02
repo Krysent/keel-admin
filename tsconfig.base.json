@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@keel/http": ["packages/http/src/index.ts"],
+      "@keel/http/*": ["packages/http/src/*"],
+      "@keel/auth": ["packages/auth/src/index.ts"],
+      "@keel/auth/*": ["packages/auth/src/*"],
+      "@keel/ui": ["packages/ui/src/index.ts"],
+      "@keel/ui/*": ["packages/ui/src/*"],
+      "@keel/theme": ["packages/theme/src/index.ts"],
+      "@keel/theme/*": ["packages/theme/src/*"],
+      "@keel/i18n": ["packages/i18n/src/index.ts"],
+      "@keel/i18n/*": ["packages/i18n/src/*"],
+      "@keel/utils": ["packages/utils/src/index.ts"],
+      "@keel/utils/*": ["packages/utils/src/*"],
+      "@keel/types": ["packages/types/src/index.ts"],
+      "@keel/types/*": ["packages/types/src/*"]
+    }
+  },
+  "exclude": ["**/node_modules", "**/dist", "**/build", "**/coverage"]
+}

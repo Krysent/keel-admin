@@ -1,0 +1,19 @@
+{
+  "name": "@keel/dep-graph-check",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tooling-only workspace: package dependency-graph utilities, property-based tests, and CI cycle scanner.",
+  "type": "module",
+  "scripts": {
+    "lint": "echo 'lint @keel/dep-graph-check: no-op (mjs sources, validated by tests).'",
+    "typecheck": "echo 'typecheck @keel/dep-graph-check: no-op (no TS sources).'",
+    "test": "vitest run",
+    "check-cycles": "node ./bin/check-package-cycles.mjs",
+    "clean": "rimraf .turbo node_modules"
+  },
+  "devDependencies": {
+    "fast-check": "^3.21.0",
+    "rimraf": "^6.0.1",
+    "vitest": "^2.1.2"
+  }
+}

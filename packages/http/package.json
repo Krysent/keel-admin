@@ -1,0 +1,49 @@
+{
+  "name": "@keel/http",
+  "version": "0.1.0",
+  "description": "HTTP factory for keel-admin: Axios instance, single-flight token refresh, dedupe, envelope unwrap, header injection.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md"],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "echo 'lint @keel/http: no ESLint yet (will be wired in task 2 polish).'",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist .turbo"
+  },
+  "peerDependencies": {
+    "axios": "^1.7.0"
+  },
+  "dependencies": {
+    "@keel/types": "workspace:*",
+    "@keel/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@keel/eslint-config": "workspace:*",
+    "@vitest/coverage-v8": "^2.1.0",
+    "axios": "^1.7.7",
+    "fast-check": "^3.21.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.2"
+  }
+}

@@ -1,0 +1,31 @@
+services:
+  admin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        MODE: staging
+    ports:
+      - "8080:80"
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  mock-api:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: sh -c "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile && pnpm --filter @keel/admin dev"
+    ports:
+      - "5173:5173"
+    environment:
+      - TZ=Asia/Shanghai
+      - VITE_USE_MOCK=true
+    restart: unless-stopped

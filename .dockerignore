@@ -1,0 +1,14 @@
+node_modules
+.git
+.turbo
+.kiro
+.vscode
+.husky
+*.log
+coverage
+playwright-report
+apps/admin/dist
+apps/admin/node_modules
+packages/*/dist
+packages/*/node_modules
+tooling/*/node_modules

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": ["src", "tests", "tsup.config.ts"]
+}

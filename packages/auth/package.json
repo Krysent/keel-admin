@@ -1,0 +1,60 @@
+{
+  "name": "@keel/auth",
+  "version": "0.1.0",
+  "description": "Permission mechanism for keel-admin: pure permission evaluator (task 5.1) plus the React-bound createAuth factory (task 5).",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "echo 'lint @keel/auth: no ESLint yet (will be wired in task 2 polish).'",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist .turbo"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-router-dom": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-router-dom": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@keel/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@keel/eslint-config": "workspace:*",
+    "@types/react": "^18",
+    "@vitest/coverage-v8": "^2.1.0",
+    "fast-check": "^3.21.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.2"
+  }
+}

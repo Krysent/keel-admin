@@ -1,0 +1,51 @@
+{
+  "name": "@keel/theme",
+  "version": "0.1.0",
+  "description": "iOS-style theme for keel-admin: AntD 5 design tokens, component overrides, dark algorithm wiring, and a global CSS fragment.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./global.css": "./global.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "global.css",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "echo 'lint @keel/theme: no ESLint yet (will be wired in task 2 polish).'",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist .turbo"
+  },
+  "peerDependencies": {
+    "antd": "^5.0.0"
+  },
+  "devDependencies": {
+    "@keel/eslint-config": "workspace:*",
+    "@vitest/coverage-v8": "^2.1.0",
+    "antd": "^5.21.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.2"
+  }
+}

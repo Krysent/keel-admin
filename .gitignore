@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+coverage
+.turbo
+.cache
+*.log
+.DS_Store
+.env.local
+.env.*.local
+.idea
+.vscode/*
+!.vscode/extensions.json
+playwright-report
+test-results
+.tsbuildinfo
+*.tsbuildinfo
