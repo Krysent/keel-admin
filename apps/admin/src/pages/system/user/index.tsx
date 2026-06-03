@@ -1,29 +1,35 @@
 /**
- * User Management page — complete CRUD example.
+ * User Management page — ProTable-based CRUD example.
  *
- * Demonstrates the full pattern a business developer should follow:
- *   - Search form (keyword + status filter)
- *   - KeelTable with permission-filtered columns, pagination, column settings
- *   - Create / Edit / Delete buttons gated by `<Auth code=... />`
- *   - `useTable` hook with stale-while-revalidate caching
+ * Refactored from the legacy KeelTable + useTable implementation to use
+ * `ProTable<UserInfo>` directly. Data loading is driven by the `request`
+ * prop (no useTable hook). The toolbar options (setting, reload, density,
+ * fullScreen) are hard-wired and cannot be disabled by business code.
  *
- * This page is the canonical reference for new CRUD modules in the admin app.
+ * Demonstrates:
+ *   - ProTable with `request` prop driving pagination + search
+ *   - Column permission filtering via filterColumnsByPermission
+ *   - Create Modal via ProForm (ModalForm) with BizError Alert handling
+ *   - Edit Modal via ProForm inside an AntD Modal
+ *   - Delete via Popconfirm
+ *   - All action buttons gated by `<Auth code=... />`
  *
- * Validates: Requirements 4.4, 10.1, 10.2, 19.3, 20.1, 20.2, 20.3
+ * Validates: Requirements 23.1, 23.2, 23.3, 23.4, 23.5, 23.7, 23.8, 23.10, 23.13, 23.14
  */
 
-import { useCallback, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import {
+  Alert,
   App as AntApp,
   Button,
-  Card,
   Form,
   Input,
   Modal,
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
   Tooltip,
 } from 'antd';
@@ -31,23 +37,23 @@ import {
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { useTranslation } from 'react-i18next';
 import type { UserInfo } from '@keel/types';
 import { filterColumnsByPermission, type KeelColumn } from '@keel/ui';
 
-import { PERMISSIONS } from '../../../config/permissions.js';
-import { Auth } from '../../../components/Auth.js';
-import { useTable, type TableFetchParams } from '../../../hooks/useTable.js';
-import { useUserStore } from '../../../stores/user.store.js';
+import { BizError, isBizError } from '@keel/http';
+
+import { PERMISSIONS } from '../../../config/permissions';
+import { Auth } from '../../../components/Auth';
+import { useUserStore } from '../../../stores/user.store';
+import { useAppStore } from '../../../stores/app.store';
 import {
   userService,
   type UserListQuery,
   type CreateUserParams,
   type UpdateUserParams,
-} from '../../../services/index.js';
+} from '../../../services/index';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,35 +67,109 @@ interface UserFormValues {
   roles?: string[];
 }
 
-type UserTableColumn = ColumnsType<UserInfo>[number] & KeelColumn;
+// Search params passed by ProTable to the `request` callback
+interface UserSearchParams {
+  current?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: 'active' | 'disabled' | undefined;
+}
+
+/**
+ * Detect a "username already exists" BizError.
+ *
+ * The mock (and real) backend returns code 40900 or a message that
+ * mentions the username uniqueness constraint. We also do a best-effort
+ * check on the message string for robustness.
+ */
+function isUsernameDuplicateError(err: unknown): err is BizError {
+  if (!isBizError(err)) return false;
+  // BizError code 40900 is the conventional "conflict / already exists" code
+  if (err.code === 40900) return true;
+  // Fallback: check for common duplicate-user messages from the backend
+  const msg = err.message.toLowerCase();
+  return (
+    msg.includes('username') &&
+    (msg.includes('already exists') ||
+      msg.includes('duplicate') ||
+      msg.includes('已存在'))
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Column Definitions
 // ---------------------------------------------------------------------------
 
-function useColumns(opts: {
+function buildColumns(opts: {
   onEdit: (record: UserInfo) => void;
-  onDelete: (id: string) => void;
-}): UserTableColumn[] {
+  onDelete: (record: UserInfo) => void;
+  getDeleteConfirmTitle: (displayName: string) => string;
+  getDeleteOkText: () => string;
+  getDeleteCancelText: () => string;
+}): (ProColumns<UserInfo> & KeelColumn)[] {
   return [
+    /**
+     * Virtual search-only column for keyword (modular match on username /
+     * displayName). `hideInTable: true` keeps it out of the data columns
+     * while still registering it as a search field (Req 23.3).
+     */
+    {
+      title: 'Keyword',
+      dataIndex: 'keyword',
+      key: 'keyword',
+      valueType: 'text',
+      hideInTable: true,
+      search: {
+        transform: (value: string) => ({ keyword: value || undefined }),
+      },
+      fieldProps: {
+        placeholder: 'Search by username / display name',
+        allowClear: true,
+      },
+    },
+    /**
+     * Virtual search-only column for status filter (Req 23.3).
+     * `hideInTable: true` keeps it out of the data columns.
+     */
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      valueType: 'select',
+      hideInTable: true,
+      valueEnum: {
+        active: { text: 'Active', status: 'Success' },
+        disabled: { text: 'Disabled', status: 'Error' },
+      },
+      search: {
+        transform: (value: string) => ({ status: value || undefined }),
+      },
+      fieldProps: {
+        allowClear: true,
+        placeholder: 'All statuses',
+      },
+    },
     {
       title: 'Username',
       dataIndex: 'username',
       key: 'username',
       width: 140,
+      search: false,
     },
     {
       title: 'Display Name',
       dataIndex: 'displayName',
       key: 'displayName',
       width: 160,
+      search: false,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
       width: 200,
-      // This column requires user:list permission (demonstration of Req 10.2)
+      search: false,
+      // Requires user:list permission — Req 23.10 / 10.2
       permission: PERMISSIONS.USER.LIST,
     },
     {
@@ -97,6 +177,7 @@ function useColumns(opts: {
       dataIndex: 'roles',
       key: 'roles',
       width: 200,
+      search: false,
       render: (_: unknown, record: UserInfo) => (
         <Space size={4} wrap>
           {record.roles.map((role) => (
@@ -111,7 +192,8 @@ function useColumns(opts: {
       title: 'Actions',
       key: 'actions',
       width: 160,
-      fixed: 'right' as const,
+      fixed: 'right',
+      search: false,
       render: (_: unknown, record: UserInfo) => (
         <Space size={8}>
           <Auth code={PERMISSIONS.USER.UPDATE}>
@@ -126,11 +208,10 @@ function useColumns(opts: {
           </Auth>
           <Auth code={PERMISSIONS.USER.DELETE}>
             <Popconfirm
-              title="Delete user"
-              description={`Are you sure you want to delete "${record.displayName}"?`}
-              onConfirm={() => opts.onDelete(record.id)}
-              okText="Delete"
-              cancelText="Cancel"
+              title={opts.getDeleteConfirmTitle(record.displayName)}
+              onConfirm={() => opts.onDelete(record)}
+              okText={opts.getDeleteOkText()}
+              cancelText={opts.getDeleteCancelText()}
               okButtonProps={{ danger: true }}
             >
               <Tooltip title="Delete">
@@ -155,49 +236,110 @@ function useColumns(opts: {
 
 export default function UserManagementPage(): JSX.Element {
   const { message } = AntApp.useApp();
-  const [searchForm] = Form.useForm();
+  const { t, i18n } = useTranslation();
 
-  // Permission context for column filtering (Req 10.2)
+  // ProTable action ref for programmatic reload
+  const actionRef = useRef<ActionType>(null);
+
+  // Permission context for column filtering (Req 10.2 / 23.10)
   const permissions = useUserStore((s) => s.permissions);
   const roles = useUserStore((s) => s.roles);
   const permCtx = { permissions, roles };
 
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
-  const [modalForm] = Form.useForm<UserFormValues>();
-  const [submitting, setSubmitting] = useState(false);
+  // Current locale for i18n-aware showTotal (Req 23.4)
+  const locale = useAppStore((s) => s.locale);
 
-  // useTable hook with SWR caching (Req 19.3)
-  const table = useTable<UserInfo, UserListQuery & TableFetchParams>({
-    fetchFn: userService.list,
-    cacheKey: 'user-management',
-    defaultPageSize: 10,
-  });
+  // ------ Create Modal state ------
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createForm] = Form.useForm<UserFormValues>();
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+
+  // ------ Edit Modal state ------
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
+  const [editForm] = Form.useForm<UserFormValues>();
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  // ------ Helpers ------
+
+  /**
+   * Resolve locale-aware success message.
+   * zh-CN → "操作成功", en-US → "Success"
+   */
+  const getSuccessMessage = useCallback((): string => {
+    const isZh = (i18n.language || locale).startsWith('zh');
+    return isZh
+      ? t('common.operationSuccess', { defaultValue: '操作成功' })
+      : t('common.success', { defaultValue: 'Success' });
+  }, [t, i18n.language, locale]);
+
+  /**
+   * Resolve error message from a caught error.
+   * Falls back to `common.error.unknown` i18n key.
+   */
+  const getErrorMessage = useCallback(
+    (err: unknown): string => {
+      const fallback = t('common.error.unknown', {
+        defaultValue: 'An unknown error occurred',
+      });
+      if (err instanceof BizError) return err.message;
+      if (err instanceof Error && err.message) return err.message;
+      return fallback;
+    },
+    [t],
+  );
 
   // ------ Handlers ------
 
-  const handleSearch = useCallback(() => {
-    const values = searchForm.getFieldsValue();
-    table.search(values);
-  }, [searchForm, table]);
-
-  const handleReset = useCallback(() => {
-    searchForm.resetFields();
-    table.reset();
-  }, [searchForm, table]);
-
   const handleCreate = useCallback(() => {
-    setModalMode('create');
-    setEditingUser(null);
-    modalForm.resetFields();
-    setModalOpen(true);
-  }, [modalForm]);
+    setCreateError(null);
+    createForm.resetFields();
+    setCreateModalOpen(true);
+  }, [createForm]);
+
+  const handleCreateSubmit = useCallback(async () => {
+    try {
+      const values = await createForm.validateFields();
+      setCreateSubmitting(true);
+      setCreateError(null);
+
+      await userService.create(values as CreateUserParams);
+      setCreateModalOpen(false);
+      actionRef.current?.reload();
+      message.success(getSuccessMessage());
+    } catch (err) {
+      // AntD validation errors have no .code — skip those
+      if (err instanceof Error && (err as { errorFields?: unknown }).errorFields) {
+        // AntD form validation error — do not close modal, no alert needed
+        return;
+      }
+      // Username duplicate: set field-level error
+      if (isUsernameDuplicateError(err)) {
+        createForm.setFields([
+          {
+            name: 'username',
+            errors: ['用户名已存在'],
+          },
+        ]);
+        return;
+      }
+      // Other API error: show Alert at top of form, keep modal open
+      setCreateError(getErrorMessage(err));
+    } finally {
+      setCreateSubmitting(false);
+    }
+  }, [createForm, message, getSuccessMessage, getErrorMessage]);
+
+  const handleCreateCancel = useCallback(() => {
+    setCreateModalOpen(false);
+    setCreateError(null);
+  }, []);
 
   const handleEdit = useCallback(
     (record: UserInfo) => {
-      setModalMode('edit');
+      setEditError(null);
       setEditingUser(record);
       const formValues: UserFormValues = {
         username: record.username,
@@ -205,197 +347,283 @@ export default function UserManagementPage(): JSX.Element {
       };
       if (record.email) formValues.email = record.email;
       if (record.roles.length > 0) formValues.roles = record.roles;
-      modalForm.setFieldsValue(formValues);
-      setModalOpen(true);
+      editForm.setFieldsValue(formValues);
+      setEditModalOpen(true);
     },
-    [modalForm],
+    [editForm],
   );
 
-  const handleDelete = useCallback(
-    async (id: string) => {
-      try {
-        await userService.remove(id);
-        message.success('User deleted successfully');
-        table.refresh();
-      } catch {
-        message.error('Failed to delete user');
-      }
-    },
-    [message, table],
-  );
-
-  const handleModalOk = useCallback(async () => {
+  const handleEditSubmit = useCallback(async () => {
+    if (!editingUser) return;
     try {
-      const values = await modalForm.validateFields();
-      setSubmitting(true);
+      const values = await editForm.validateFields();
+      setEditSubmitting(true);
+      setEditError(null);
 
-      if (modalMode === 'create') {
-        await userService.create(values as CreateUserParams);
-        message.success('User created successfully');
-      } else if (editingUser) {
-        const updateData: UpdateUserParams = {};
-        if (values.displayName) updateData.displayName = values.displayName;
-        if (values.email) updateData.email = values.email;
-        if (values.roles && values.roles.length > 0) updateData.roles = values.roles;
-        await userService.update(editingUser.id, updateData);
-        message.success('User updated successfully');
+      const updateData: UpdateUserParams = {};
+      if (values.displayName) updateData.displayName = values.displayName;
+      if (values.email !== undefined) updateData.email = values.email;
+      if (values.roles && values.roles.length > 0) updateData.roles = values.roles;
+
+      await userService.update(editingUser.id, updateData);
+      setEditModalOpen(false);
+      actionRef.current?.reload();
+      message.success(getSuccessMessage());
+    } catch (err) {
+      if (err instanceof Error && (err as { errorFields?: unknown }).errorFields) {
+        return;
       }
-
-      setModalOpen(false);
-      table.refresh();
-    } catch {
-      // Validation errors are surfaced by AntD form, network errors
-      // would be caught by the global error handler.
+      setEditError(getErrorMessage(err));
     } finally {
-      setSubmitting(false);
+      setEditSubmitting(false);
     }
-  }, [modalForm, modalMode, editingUser, message, table]);
+  }, [editForm, editingUser, message, getSuccessMessage, getErrorMessage]);
 
-  const handleModalCancel = useCallback(() => {
-    setModalOpen(false);
+  const handleEditCancel = useCallback(() => {
+    setEditModalOpen(false);
+    setEditError(null);
   }, []);
 
-  // ------ Columns with permission filtering (Req 10.2) ------
+  const handleDelete = useCallback(
+    async (record: UserInfo) => {
+      try {
+        await userService.remove(record.id);
+        message.success(getSuccessMessage());
+        actionRef.current?.reload();
+      } catch (err) {
+        message.error(getErrorMessage(err));
+      }
+    },
+    [message, getSuccessMessage, getErrorMessage],
+  );
 
-  const rawColumns = useColumns({ onEdit: handleEdit, onDelete: handleDelete });
+  // ------ Column filtering (Req 10.2 / 23.10) ------
+
+  const isZhLocale = useCallback(
+    () => (i18n.language || locale).startsWith('zh'),
+    [i18n.language, locale],
+  );
+
+  const getDeleteConfirmTitle = useCallback(
+    (displayName: string): string => {
+      return isZhLocale()
+        ? `确定删除用户 "${displayName}" 吗？`
+        : `Are you sure you want to delete "${displayName}"?`;
+    },
+    [isZhLocale],
+  );
+
+  const getDeleteOkText = useCallback(
+    (): string => (isZhLocale() ? '删除' : 'Delete'),
+    [isZhLocale],
+  );
+
+  const getDeleteCancelText = useCallback(
+    (): string => (isZhLocale() ? '取消' : 'Cancel'),
+    [isZhLocale],
+  );
+
+  const rawColumns = buildColumns({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    getDeleteConfirmTitle,
+    getDeleteOkText,
+    getDeleteCancelText,
+  });
+
   const visibleColumns = filterColumnsByPermission(
     rawColumns,
     permCtx,
-  ) as ColumnsType<UserInfo>;
+  ) as ProColumns<UserInfo>[];
+
+  // ------ ProTable request prop (Req 23.13) ------
+  // Returns { data, success, total } — the ProTable contract.
+  // ProTable passes { current, pageSize, keyword?, status?, ... } as params
+  // after applying each column's `search.transform`. Undefined values for
+  // keyword/status are not forwarded to the API (Req 23.3, 23.14).
+
+  const request = useCallback(
+    async (params: UserSearchParams): Promise<{ data: UserInfo[]; success: boolean; total: number }> => {
+      try {
+        const { current = 1, pageSize = 10 } = params;
+        const query: UserListQuery = {
+          page: current,
+          pageSize,
+        };
+        // Only include truthy search values — undefined means "no filter"
+        if (params.keyword) query.keyword = params.keyword;
+        if (params.status) query.status = params.status;
+        const result = await userService.list(query);
+        return {
+          data: result.list,
+          success: true,
+          total: result.total,
+        };
+      } catch {
+        return { data: [], success: false, total: 0 };
+      }
+    },
+    [],
+  );
 
   // ------ Render ------
 
   return (
-    <div style={{ padding: 24 }}>
-      {/* Search Form */}
-      <Card style={{ marginBottom: 16 }}>
-        <Form
-          form={searchForm}
-          layout="inline"
-          style={{ gap: 12, flexWrap: 'wrap' }}
-        >
-          <Form.Item name="keyword" style={{ minWidth: 200 }}>
-            <Input placeholder="Search by username or name" allowClear />
-          </Form.Item>
-          <Form.Item name="status" style={{ minWidth: 140 }}>
-            <Select
-              placeholder="Status"
-              allowClear
-              options={[
-                { label: 'Active', value: 'active' },
-                { label: 'Disabled', value: 'disabled' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-              <Button onClick={handleReset}>Reset</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      {/* Table with toolbar */}
-      <Card>
-        {/* Toolbar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: 16,
-          }}
-        >
-          <Auth code={PERMISSIONS.USER.CREATE}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+    <>
+      {/* ProTable — Req 23.1, 23.2, 23.3, 23.4, 23.13, 23.14 */}
+      <ProTable<UserInfo>
+        rowKey="id"
+        actionRef={actionRef}
+        columns={visibleColumns}
+        request={request}
+        scroll={{ x: 900 }}
+        // Toolbar: setting, reload, density, fullScreen always on (Req 23.2)
+        // These four options are forced and CANNOT be disabled by callers.
+        options={{
+          setting: true,
+          reload: true,
+          density: true,
+          fullScreen: true,
+        }}
+        // Search form: keyword (text) + status (select) fields are defined
+        // via the virtual columns above (hideInTable: true). ProTable
+        // auto-generates the form from those column definitions (Req 23.3).
+        // defaultCollapsed: false keeps the search form expanded by default.
+        search={{
+          labelWidth: 'auto',
+          filterType: 'light',
+          defaultCollapsed: false,
+        }}
+        // Default pagination — pageSize 10, show total in zh-CN / en-US
+        // format (Req 23.4). showTotal renders left of the page controls.
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) =>
+            locale === 'zh-CN' ? `共 ${total} 条` : `Total ${total} items`,
+        }}
+        // Toolbar create button gated by user:create permission (Req 23.9)
+        toolBarRender={() => [
+          <Auth key="create" code={PERMISSIONS.USER.CREATE}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
               New User
             </Button>
-          </Auth>
-          <Space>
-            <Tooltip title="Refresh">
-              <Button
-                icon={<ReloadOutlined spin={table.refreshing} />}
-                onClick={table.refresh}
-              />
-            </Tooltip>
-          </Space>
-        </div>
+          </Auth>,
+        ]}
+      />
 
-        {/* KeelTable — uses AntD Table + column permission filter */}
-        <Table<UserInfo>
-          rowKey="id"
-          columns={visibleColumns}
-          dataSource={table.data}
-          loading={table.loading}
-          scroll={{ x: 900 }}
-          pagination={{
-            current: table.page,
-            pageSize: table.pageSize,
-            total: table.total,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} users`,
-            onChange: (p, ps) => table.setPagination(p, ps),
-          }}
-        />
-      </Card>
-
-      {/* Create / Edit Modal */}
+      {/* --------------------------------------------------------------- */}
+      {/* Create User Modal — Req 23.5, 23.7                              */}
+      {/* --------------------------------------------------------------- */}
+      {/*
+       * Design decisions:
+       *   - Use AntD Modal + Form (not ModalForm from ProForm) so we can
+       *     keep full control over the submit flow and show the BizError
+       *     Alert *above* the form fields.
+       *   - `destroyOnClose` resets the internal form state cleanly.
+       *   - `confirmLoading` wires the OK button to our submitting state.
+       */}
       <Modal
-        title={modalMode === 'create' ? 'Create User' : 'Edit User'}
-        open={modalOpen}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        confirmLoading={submitting}
+        title="新建用户 / New User"
+        open={createModalOpen}
+        onOk={handleCreateSubmit}
+        onCancel={handleCreateCancel}
+        confirmLoading={createSubmitting}
         destroyOnClose
+        afterClose={() => {
+          setCreateError(null);
+          createForm.resetFields();
+        }}
       >
         <Form
-          form={modalForm}
+          form={createForm}
           layout="vertical"
           style={{ marginTop: 16 }}
         >
-          <Form.Item
-            name="username"
-            label="Username"
-            rules={[{ required: true, message: 'Username is required' }]}
-          >
-            <Input
-              disabled={modalMode === 'edit'}
-              placeholder="Enter username"
-            />
-          </Form.Item>
-          <Form.Item
-            name="displayName"
-            label="Display Name"
-            rules={[{ required: true, message: 'Display name is required' }]}
-          >
-            <Input placeholder="Enter display name" />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ type: 'email', message: 'Please enter a valid email' }]}
-          >
-            <Input placeholder="Enter email" />
-          </Form.Item>
-          {modalMode === 'create' && (
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[{ required: true, message: 'Password is required' }]}
-            >
-              <Input.Password placeholder="Enter password" />
+          {/* BizError Alert — shown at top of form on submit failure (Req 23.7) */}
+          {createError !== null && (
+            <Form.Item style={{ marginBottom: 16 }}>
+              <Alert
+                type="error"
+                message={createError}
+                showIcon
+                closable
+                onClose={() => setCreateError(null)}
+              />
             </Form.Item>
           )}
-          <Form.Item name="roles" label="Roles">
+
+          {/* Username — required, maxLength 64 (Req 23.5) */}
+          <Form.Item
+            name="username"
+            label="用户名 / Username"
+            rules={[
+              { required: true, message: '用户名为必填项 / Username is required' },
+              { max: 64, message: '用户名最多 64 个字符 / Max 64 characters' },
+            ]}
+          >
+            <Input
+              placeholder="Enter username"
+              maxLength={64}
+              showCount
+            />
+          </Form.Item>
+
+          {/* Display Name — required, maxLength 64 (Req 23.5) */}
+          <Form.Item
+            name="displayName"
+            label="显示名 / Display Name"
+            rules={[
+              { required: true, message: '显示名为必填项 / Display name is required' },
+              { max: 64, message: '显示名最多 64 个字符 / Max 64 characters' },
+            ]}
+          >
+            <Input
+              placeholder="Enter display name"
+              maxLength={64}
+              showCount
+            />
+          </Form.Item>
+
+          {/* Email — optional, email format validation (Req 23.5) */}
+          <Form.Item
+            name="email"
+            label="邮箱 / Email"
+            rules={[
+              { type: 'email', message: '请输入有效的邮箱地址 / Please enter a valid email address' },
+            ]}
+          >
+            <Input placeholder="Enter email (optional)" />
+          </Form.Item>
+
+          {/* Password — required, minLength 6, maxLength 128 (Req 23.5) */}
+          <Form.Item
+            name="password"
+            label="初始密码 / Initial Password"
+            rules={[
+              { required: true, message: '密码为必填项 / Password is required' },
+              { min: 6, message: '密码至少 6 个字符 / Min 6 characters' },
+              { max: 128, message: '密码最多 128 个字符 / Max 128 characters' },
+            ]}
+          >
+            <Input.Password
+              placeholder="Enter initial password"
+              maxLength={128}
+            />
+          </Form.Item>
+
+          {/* Roles — multi-select, admin / editor / viewer (Req 23.5) */}
+          <Form.Item
+            name="roles"
+            label="角色 / Roles"
+          >
             <Select
               mode="multiple"
-              placeholder="Select roles"
+              placeholder="Select roles (optional)"
               options={[
                 { label: 'Admin', value: 'admin' },
                 { label: 'Editor', value: 'editor' },
@@ -405,6 +633,94 @@ export default function UserManagementPage(): JSX.Element {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+
+      {/* --------------------------------------------------------------- */}
+      {/* Edit User Modal — Req 23.6, 23.7                               */}
+      {/* --------------------------------------------------------------- */}
+      <Modal
+        title="编辑用户 / Edit User"
+        open={editModalOpen}
+        onOk={handleEditSubmit}
+        onCancel={handleEditCancel}
+        confirmLoading={editSubmitting}
+        destroyOnClose
+        afterClose={() => {
+          setEditError(null);
+          editForm.resetFields();
+        }}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          style={{ marginTop: 16 }}
+        >
+          {/* BizError Alert — Req 23.7 */}
+          {editError !== null && (
+            <Form.Item style={{ marginBottom: 16 }}>
+              <Alert
+                type="error"
+                message={editError}
+                showIcon
+                closable
+                onClose={() => setEditError(null)}
+              />
+            </Form.Item>
+          )}
+
+          {/* Username — disabled in edit mode (Req 23.6) */}
+          <Form.Item
+            name="username"
+            label="用户名 / Username"
+          >
+            <Input disabled />
+          </Form.Item>
+
+          {/* Display Name — required, maxLength 64 */}
+          <Form.Item
+            name="displayName"
+            label="显示名 / Display Name"
+            rules={[
+              { required: true, message: '显示名为必填项 / Display name is required' },
+              { max: 64, message: '显示名最多 64 个字符 / Max 64 characters' },
+            ]}
+          >
+            <Input
+              placeholder="Enter display name"
+              maxLength={64}
+              showCount
+            />
+          </Form.Item>
+
+          {/* Email — optional, email format */}
+          <Form.Item
+            name="email"
+            label="邮箱 / Email"
+            rules={[
+              { type: 'email', message: '请输入有效的邮箱地址 / Please enter a valid email address' },
+            ]}
+          >
+            <Input placeholder="Enter email (optional)" />
+          </Form.Item>
+
+          {/* Password field is NOT rendered in edit mode — Req 23.6 */}
+
+          {/* Roles — multi-select */}
+          <Form.Item
+            name="roles"
+            label="角色 / Roles"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Select roles (optional)"
+              options={[
+                { label: 'Admin', value: 'admin' },
+                { label: 'Editor', value: 'editor' },
+                { label: 'Viewer', value: 'viewer' },
+              ]}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 }

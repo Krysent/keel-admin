@@ -19,13 +19,13 @@ export {
   type LoginResult,
   type LoginServices,
   type LoginStoreWriters,
-} from './login-flow.js';
+} from './login-flow';
 
 export {
   runLogoutFlow,
   type LogoutDeps,
   type LogoutServices,
   type LogoutStoreResetters,
-} from './logout-flow.js';
+} from './logout-flow';
 
-export { AuthProvider, useLoginDeps } from './auth-context.js';
+export { AuthProvider, useLoginDeps } from './auth-context';

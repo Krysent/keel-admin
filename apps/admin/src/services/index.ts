@@ -7,14 +7,14 @@
  * task 9's bootstrap layer).
  */
 
-export { http, tokenManager } from './http.js';
-export { authService, type LoginParams } from './auth.service.js';
-export { userService, type UserListQuery, type CreateUserParams, type UpdateUserParams } from './user.service.js';
-export { menuService } from './menu.service.js';
+export { http, tokenManager } from './http';
+export { authService, type LoginParams } from './auth.service';
+export { userService, type UserListQuery, type CreateUserParams, type UpdateUserParams } from './user.service';
+export { menuService } from './menu.service';
 export {
   orderService,
   type Order,
   type OrderListQuery,
   type CreateOrderParams,
   type UpdateOrderParams,
-} from './order.service.js';
+} from './order.service';

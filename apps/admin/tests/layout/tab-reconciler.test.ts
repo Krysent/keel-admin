@@ -60,11 +60,18 @@ describe('pickActiveAfterClose', () => {
     expect(pickActiveAfterClose([HOME, USER, ORDER], USER.key, ORDER.key)).toBe(ORDER.key);
   });
 
-  it('falls back to the left neighbor when closing the active tab', () => {
-    expect(pickActiveAfterClose([HOME, USER, ORDER], USER.key, USER.key)).toBe(HOME.key);
+  it('prefers the right neighbor when closing the active tab (Requirement 22.6)', () => {
+    // Closing USER (idx=1): right is ORDER (idx=2)
+    expect(pickActiveAfterClose([HOME, USER, ORDER], USER.key, USER.key)).toBe(ORDER.key);
   });
 
-  it('falls back to the right neighbor when closing the leftmost active tab', () => {
+  it('falls back to the left neighbor when closing the rightmost active tab (Requirement 22.6)', () => {
+    // Closing ORDER (idx=2): no right, fall back to USER (idx=1)
+    expect(pickActiveAfterClose([HOME, USER, ORDER], ORDER.key, ORDER.key)).toBe(USER.key);
+  });
+
+  it('prefers right over left when both exist', () => {
+    // Closing the leftmost tab (HOME, idx=0): right is USER
     expect(pickActiveAfterClose([HOME, USER, ORDER], HOME.key, HOME.key)).toBe(USER.key);
   });
 

@@ -34,7 +34,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import type { LoginDeps } from './login-flow.js';
+import type { LoginDeps } from './login-flow';
 
 const AuthContext = createContext<LoginDeps | null>(null);
 

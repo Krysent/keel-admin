@@ -9,7 +9,7 @@
 
 import type { MenuNode } from '@keel/types';
 
-import { http } from './http.js';
+import { http } from './http';
 
 export const menuService = {
   /**

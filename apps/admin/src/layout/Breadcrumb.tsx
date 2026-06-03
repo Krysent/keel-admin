@@ -21,8 +21,8 @@ import { Breadcrumb as AntBreadcrumb } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { useUserStore } from '../stores/user.store.js';
-import { findMenuPath } from './lib/menu-tree.js';
+import { useUserStore } from '../stores/user.store';
+import { findMenuPath } from './lib/menu-tree';
 
 export function Breadcrumb(): JSX.Element {
   const menus = useUserStore((s) => s.menus);
@@ -30,7 +30,7 @@ export function Breadcrumb(): JSX.Element {
   const { t, i18n } = useTranslation();
 
   /** True when the active language is Chinese (zh-CN or any zh-* variant). */
-  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language?.startsWith('zh');
 
   // `findMenuPath` returns the full chain (root → leaf). When the
   // pathname doesn't match anything in the menu (e.g. an exception

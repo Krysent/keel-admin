@@ -18,26 +18,26 @@
  *     service belongs in task 9.4.
  */
 
-import { Button, Dropdown, Layout, Space, type MenuProps } from 'antd';
+import { Button, Dropdown, Input, Layout, Space, type MenuProps } from 'antd';
 import {
+  BellOutlined,
   GlobalOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MoonOutlined,
+  SearchOutlined,
   SunOutlined,
   UserOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 
-import { useAppStore } from '../stores/app.store.js';
-import { useTenantStore } from '../stores/tenant.store.js';
-import { useUserStore } from '../stores/user.store.js';
-import { runLogoutFlow } from '../auth/logout-flow.js';
-import { authService } from '../services/auth.service.js';
-import { tokenManager } from '../services/http.js';
-import { Breadcrumb } from './Breadcrumb.js';
+import { useAppStore } from '../stores/app.store';
+import { useTenantStore } from '../stores/tenant.store';
+import { useUserStore } from '../stores/user.store';
+import { Breadcrumb } from './Breadcrumb';
+import { useUserMenu } from './lib/use-user-menu';
 
 const { Header: AntHeader } = Layout;
 
@@ -47,7 +47,13 @@ const LOCALE_OPTIONS = [
   { key: 'en-US', label: 'English' },
 ] as const;
 
-export function Header(): JSX.Element {
+export interface HeaderProps {
+  /** Extra inline styles merged onto the AntD Header element. Used by
+   * `BasicLayout` to inject sticky positioning (Requirement 22.14). */
+  style?: CSSProperties;
+}
+
+export function Header({ style }: HeaderProps = {}): JSX.Element {
   const collapsed = useAppStore((s) => s.collapsed);
   const toggleCollapsed = useAppStore((s) => s.toggleCollapsed);
   const theme = useAppStore((s) => s.theme);
@@ -62,10 +68,10 @@ export function Header(): JSX.Element {
   const userInfo = useUserStore((s) => s.userInfo);
 
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const userMenu = useUserMenu();
 
   /** True when the active language is Chinese (zh-CN or any zh-* variant). */
-  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language?.startsWith('zh');
 
   // Build dropdown items for each switcher. Kept inline because they're
   // tiny and rebuilding on every render is cheaper than the memo logic
@@ -91,67 +97,54 @@ export function Header(): JSX.Element {
     onClick: (info) => switchTenant(info.key),
   };
 
-  const userMenu: MenuProps = {
-    items: [
-      {
-        key: 'profile',
-        label: t('header.user.profile', {
-          defaultValue: isZhCN ? '个人信息' : 'Profile',
-        }),
-      },
-      { type: 'divider' },
-      {
-        key: 'logout',
-        label: t('header.user.logout', {
-          defaultValue: isZhCN ? '退出登录' : 'Sign out',
-        }),
-      },
-    ],
-    onClick: async (info) => {
-      if (info.key === 'logout') {
-        await runLogoutFlow({
-          services: { logout: () => authService.logout() },
-          tokenManager,
-          stores: {
-            resetUser: () => useUserStore.getState().reset(),
-            resetTenant: () => useTenantStore.getState().reset(),
-            resetApp: () => useAppStore.getState().reset(),
-          },
-        });
-        navigate('/login', { replace: true });
-      }
-    },
-  };
+  const searchPlaceholder = t('header.search.placeholder', {
+    defaultValue: isZhCN ? '搜索菜单、页面…' : 'Search…',
+  });
 
   return (
     <AntHeader
+      data-testid="basic-layout-header"
+      className="keel-header"
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
-        padding: '0 16px',
+        gap: 12,
+        padding: '0 20px',
         height: 56,
         lineHeight: '56px',
-        // The frosted-glass styling lives in `@keel/theme/global.css`.
-        // The header just sets the correct AntD layout class via being
-        // an `<AntHeader>`.
+        // Background, border, and text color are handled by `.keel-header`
+        // in index.less using AntD CSS token variables, so they respond
+        // correctly to light ↔ dark mode switches without inline overrides.
+        // Sticky positioning is injected by BasicLayout (Req 22.14).
+        ...style,
       }}
     >
       <Button
         type="text"
         aria-label="toggle-sider"
+        className="keel-header__icon-btn"
         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={toggleCollapsed}
       />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="keel-header__crumb">
         <Breadcrumb />
       </div>
 
-      <Space size={8}>
+      {/* Search box — purely presentational for now; wiring a real command
+       * palette / global search belongs to a later task. */}
+      <Input
+        className="keel-header__search"
+        prefix={<SearchOutlined />}
+        placeholder={searchPlaceholder}
+        allowClear
+        variant="filled"
+      />
+
+      <Space size={4} className="keel-header__actions">
         {tenantList.length > 0 && (
           <Dropdown menu={tenantMenu} trigger={['click']} placement="bottomRight">
-            <Button type="text" icon={<TeamOutlined />}>
+            <Button type="text" className="keel-header__tenant" icon={<TeamOutlined />}>
               {currentTenant?.name ?? t('header.tenant.placeholder', {
                 defaultValue: isZhCN ? '切换租户' : 'Tenant',
               })}
@@ -159,19 +152,32 @@ export function Header(): JSX.Element {
           </Dropdown>
         )}
 
+        <Button
+          type="text"
+          aria-label="notifications"
+          className="keel-header__icon-btn"
+          icon={<BellOutlined />}
+        />
+
         <Dropdown menu={localeMenu} trigger={['click']} placement="bottomRight">
-          <Button type="text" icon={<GlobalOutlined />} aria-label="locale" />
+          <Button
+            type="text"
+            className="keel-header__icon-btn"
+            icon={<GlobalOutlined />}
+            aria-label="locale"
+          />
         </Dropdown>
 
         <Button
           type="text"
           aria-label="theme"
+          className="keel-header__icon-btn"
           icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
 
         <Dropdown menu={userMenu} trigger={['click']} placement="bottomRight">
-          <Button type="text" icon={<UserOutlined />}>
+          <Button type="text" className="keel-header__user" icon={<UserOutlined />}>
             {userInfo?.displayName ?? t('header.user.guest', {
               defaultValue: isZhCN ? '访客' : 'Guest',
             })}

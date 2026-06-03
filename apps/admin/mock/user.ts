@@ -73,10 +73,11 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/users',
     method: 'get',
-    response: ({ query }: { query: { page?: string; pageSize?: string; keyword?: string } }) => {
+    response: ({ query }: { query: { page?: string; pageSize?: string; keyword?: string; status?: string } }) => {
       const page = Number(query.page) || 1;
       const pageSize = Number(query.pageSize) || 10;
       const keyword = query.keyword?.toLowerCase() ?? '';
+      const status = query.status ?? '';
 
       let filtered = mockUsers;
       if (keyword) {
@@ -85,6 +86,10 @@ const mockHandlers: MockMethod[] = [
             u.username.toLowerCase().includes(keyword) ||
             u.displayName.toLowerCase().includes(keyword),
         );
+      }
+      // Filter by status when provided (Req 23.3)
+      if (status === 'active' || status === 'disabled') {
+        filtered = filtered.filter((u) => (u as unknown as { status?: string }).status === status);
       }
 
       const start = (page - 1) * pageSize;
@@ -123,7 +128,9 @@ const mockHandlers: MockMethod[] = [
     url: '/api/users/:id',
     method: 'put',
     response: ({ body, query }: { body: { displayName?: string; email?: string; avatar?: string; roles?: string[] }; query: { id?: string } }) => {
-      const user = mockUsers[0]!;
+      // In vite-plugin-mock, route params (e.g. :id) are surfaced via `query`
+      const targetId = query.id;
+      const user = mockUsers.find((u) => u.id === targetId) ?? mockUsers[0]!;
       return wrap({
         ...user,
         ...body,

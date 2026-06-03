@@ -32,15 +32,15 @@ import { useTranslation } from 'react-i18next';
 
 import type { MenuNode } from '@keel/types';
 
-import { useAppStore } from '../stores/app.store.js';
-import { useUserStore } from '../stores/user.store.js';
+import { useAppStore } from '../stores/app.store';
+import { useUserStore } from '../stores/user.store';
 import {
   appendTab,
   collectAffixedTabs,
   pickActiveAfterClose,
   removeTab,
   tabFromMenuNode,
-} from './lib/tab-reconciler.js';
+} from './lib/tab-reconciler';
 
 /**
  * Pull the deepest matched route's `handle.menu` (set by
@@ -150,11 +150,15 @@ export function Tabs(): JSX.Element | null {
         const updated = removeTab(tabs, key);
         if (updated === tabs) return;
         removeTabAction(key);
-        if (nextActive && nextActive !== activeKey) {
+        if (nextActive === null) {
+          // All tabs closed — fall back to root (Requirement 22.6).
+          navigate('/');
+        } else if (nextActive !== activeKey) {
           navigate(nextActive);
         }
       }}
-      style={{ padding: '0 16px', background: 'transparent' }}
+      style={{ padding: '0 16px' }}
+      className="keel-tabs"
     />
   );
 }

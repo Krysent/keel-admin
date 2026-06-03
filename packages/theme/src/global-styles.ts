@@ -19,6 +19,10 @@
  * Both paths must stay in sync with `packages/theme/global.css`. Tests in
  * this package cover the string export; the `.css` file is shipped via
  * `package.json#files` so external consumers can import it directly.
+ *
+ * Color values use AntD 5 CSS token variables (available because both
+ * themeConfig and darkThemeConfig set `cssVar: true`). This ensures
+ * light ↔ dark mode swaps update every surface without hardcoded colors.
  */
 export const globalStyles = `:root {
   --keel-radius-card: 16px;
@@ -26,15 +30,45 @@ export const globalStyles = `:root {
 }
 
 body {
-  background: #F2F2F7;
+  /* Use the AntD layout background token so dark mode flips automatically. */
+  background: var(--ant-color-bg-layout, #F2F2F7);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Header: frosted-glass surface that adapts to light / dark mode.
+ *
+ * Light: white-72% translucent backdrop (iOS design spec).
+ * Dark:  dark elevated surface (iOS dark: #1C1C1E at 72% opacity).
+ *
+ * We can't use a single rgba() for both modes, so we rely on the AntD
+ * colorBgElevated CSS variable which is already set to the correct
+ * translucent value for each mode in tokens.ts. The color property
+ * is explicitly set to colorText so it never inherits the wrong shade
+ * regardless of what the outer Layout sets.
+ */
 .ant-layout-header {
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--ant-color-bg-elevated);
   backdrop-filter: var(--keel-blur);
-  border-bottom: 1px solid rgba(60, 60, 67, 0.10);
+  -webkit-backdrop-filter: var(--keel-blur);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  /* Fallback foreground for any raw text directly in the header. AntD's
+   * text buttons, breadcrumb, and icons already use their own token colors
+   * (colorText / colorTextDescription), which track light ↔ dark correctly,
+   * so we don't force inherit here — that would clobber hover/disabled
+   * states. This just guarantees stray text is readable. */
+  color: var(--ant-color-text);
+}
+
+/* Sider: transparent background so the layout background shows through.
+ * The logo text follows the same token so it's readable in both modes. */
+.ant-layout-sider {
+  background: transparent !important;
+}
+
+.ant-layout-sider .ant-layout-sider-children {
+  background: var(--ant-color-bg-container);
+  border-right: 1px solid var(--ant-color-border-secondary);
 }
 
 .ant-modal-mask {
@@ -51,7 +85,7 @@ body {
 
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-thumb {
-  background: rgba(60, 60, 67, 0.18);
+  background: var(--ant-color-border-secondary, rgba(60, 60, 67, 0.18));
   border-radius: 3px;
 }
 `;

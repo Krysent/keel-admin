@@ -17,9 +17,9 @@ import { createHttp, createTokenManager, type TokenManager } from '@keel/http';
 import type { TokenPair } from '@keel/types';
 import type { StorageKind } from '@keel/utils';
 
-import { useUserStore } from '../stores/user.store.js';
-import { useTenantStore } from '../stores/tenant.store.js';
-import { useAppStore } from '../stores/app.store.js';
+import { useUserStore } from '../stores/user.store';
+import { useTenantStore } from '../stores/tenant.store';
+import { useAppStore } from '../stores/app.store';
 
 /**
  * Resolve Token storage backend from VITE_AUTH_STORAGE env variable.

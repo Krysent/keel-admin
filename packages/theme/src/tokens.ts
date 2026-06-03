@@ -29,7 +29,7 @@ export const tokens: NonNullable<ThemeConfig['token']> = {
   colorBgBase: '#F2F2F7',
   colorBgContainer: '#FFFFFF',
   // Translucent elevated surface so `backdrop-filter` blur reads through.
-  colorBgElevated: 'rgba(255,255,255,0.72)',
+  colorBgElevated: 'rgba(255,255,255)',
   colorBgLayout: '#F2F2F7',
   colorBorderSecondary: 'rgba(60,60,67,0.10)',
   colorTextBase: '#1C1C1E',
@@ -68,7 +68,7 @@ export const darkTokens: NonNullable<ThemeConfig['token']> = {
   // iOS dark surfaces.
   colorBgBase: '#000000',
   colorBgContainer: '#1C1C1E',
-  colorBgElevated: 'rgba(28,28,30,0.72)',
+  colorBgElevated: 'rgba(28,28,30)',
   colorBgLayout: '#000000',
   colorBorderSecondary: 'rgba(84,84,88,0.65)',
   colorTextBase: '#F2F2F7',

@@ -16,7 +16,7 @@
  * with the rest of the UI (Requirement 8.3).
  */
 
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import enUS from 'antd/locale/en_US';
@@ -24,7 +24,7 @@ import type { Locale } from 'antd/es/locale';
 
 import { themeConfig, darkThemeConfig } from '@keel/theme';
 
-import { useAppStore } from '../stores/app.store.js';
+import { useAppStore } from '../stores/app.store';
 
 /**
  * Map our `LocaleCode` union to AntD's locale bundles.
@@ -53,6 +53,15 @@ export function ThemeBridge({ children }: ThemeBridgeProps): JSX.Element {
     () => (theme === 'dark' ? darkThemeConfig : themeConfig),
     [theme],
   );
+
+  // Mirror the active theme onto a `data-theme` attribute on <html> so
+  // plain CSS (index.less) can target dark mode for surfaces AntD tokens
+  // alone don't cover — e.g. the indigo sider gradient in the UI spec.
+  // This runs as a layout effect-equivalent before paint so there's no
+  // light → dark flash on first render.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   return (
     <ConfigProvider theme={config} locale={ANTD_LOCALES[locale]}>

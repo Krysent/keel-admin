@@ -12,7 +12,7 @@ export {
   type UserState,
   type UserActions,
   type UserStore,
-} from './user.store.js';
+} from './user.store';
 
 export {
   useTenantStore,
@@ -20,7 +20,7 @@ export {
   type TenantState,
   type TenantActions,
   type TenantStore,
-} from './tenant.store.js';
+} from './tenant.store';
 
 export {
   useAppStore,
@@ -28,7 +28,7 @@ export {
   type AppState,
   type AppActions,
   type AppStore,
-} from './app.store.js';
+} from './app.store';
 
 export {
   useOrderStore,
@@ -37,4 +37,4 @@ export {
   type OrderActions,
   type OrderStore,
   type OrderFilters,
-} from './modules/order.store.js';
+} from './modules/order.store';

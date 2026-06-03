@@ -10,7 +10,7 @@
 
 import type { PageQuery, PageResult, UserInfo } from '@keel/types';
 
-import { http } from './http.js';
+import { http } from './http';
 
 export interface UserListQuery extends PageQuery {
   keyword?: string;

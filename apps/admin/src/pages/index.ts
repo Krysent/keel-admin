@@ -23,8 +23,8 @@ export {
   lookupPagePath,
   resolveLazyPage,
   type PageModulesMap,
-} from './_async.js';
+} from './_async';
 
-export { default as LoginPage } from './login/index.js';
-export { default as Forbidden403 } from './exception/403.js';
-export { default as NotFound404 } from './exception/404.js';
+export { default as LoginPage } from './login/index';
+export { default as Forbidden403 } from './exception/403';
+export { default as NotFound404 } from './exception/404';

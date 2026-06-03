@@ -40,7 +40,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { runLoginFlow, useLoginDeps } from '../../auth/index.js';
+import { runLoginFlow, useLoginDeps } from '../../auth/index';
 
 // ---------------------------------------------------------------------------
 // "Remember me" localStorage helpers (Requirement 21.10)

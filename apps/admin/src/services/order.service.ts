@@ -9,7 +9,7 @@
 
 import type { PageQuery, PageResult } from '@keel/types';
 
-import { http } from './http.js';
+import { http } from './http';
 
 /** Order entity as returned by the backend. */
 export interface Order {

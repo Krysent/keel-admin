@@ -19,7 +19,7 @@
 import type { ReactNode } from 'react';
 import { evaluatePermission, type PermissionMode } from '@keel/auth';
 
-import { useUserStore } from '../stores/user.store.js';
+import { useUserStore } from '../stores/user.store';
 
 export interface AuthProps {
   /** Permission code(s) required to render children. */

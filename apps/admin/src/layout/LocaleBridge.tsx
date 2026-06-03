@@ -23,7 +23,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAppStore } from '../stores/app.store.js';
+import { useAppStore } from '../stores/app.store';
 
 export interface LocaleBridgeProps {
   children: ReactNode;

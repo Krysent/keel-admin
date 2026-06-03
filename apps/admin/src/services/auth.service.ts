@@ -9,7 +9,7 @@
 
 import type { TokenPair } from '@keel/types';
 
-import { http } from './http.js';
+import { http } from './http';
 
 export interface LoginParams {
   username: string;

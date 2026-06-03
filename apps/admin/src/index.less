@@ -1,0 +1,442 @@
+/**
+ * Admin shell layout styling.
+ *
+ * Loaded after `@keel/theme/global.css` (see main.tsx import order) so the
+ * selectors here intentionally override the package defaults for the Sider /
+ * Header chrome.
+ *
+ * Two visual modes, switched by the `data-theme` attribute that
+ * `ThemeBridge` writes onto <html>:
+ *   - light : iOS-style — white sider, frosted white header (design.md spec)
+ *   - dark  : indigo "branded" sider + dark frosted header, matching the
+ *             dashboard UI reference
+ *
+ * Colour values reference AntD CSS token variables (`--ant-*`) wherever a
+ * token exists so light ↔ dark swaps stay automatic; the indigo sider is the
+ * one place we hardcode, because it's a brand surface AntD tokens don't model.
+ */
+
+// ---------------------------------------------------------------------------
+// Indigo brand palette (dark sider) — sourced from the dashboard reference.
+// ---------------------------------------------------------------------------
+@indigo-900: #1c1b3a;
+@indigo-800: #232149;
+@indigo-700: #2c2a5c;
+@indigo-600: #3a3770;
+@indigo-accent: #6c63ff;
+@indigo-text: #ffffff;
+@indigo-text-dim: rgba(235, 235, 245, 0.55);
+@indigo-text-mute: rgba(235, 235, 245, 0.38);
+
+html,
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// ===========================================================================
+// SIDER
+// ===========================================================================
+
+// The AntD Sider wrapper is transparent; the inner children div carries the
+// real surface so the right border hugs the content column (Req 22.14 note).
+.keel-sider {
+  .ant-layout-sider-children {
+    background: var(--ant-color-bg-container);
+    border-right: 1px solid var(--ant-color-border-secondary);
+    height: 100%;
+    transition: background 0.3s ease;
+  }
+}
+
+.keel-sider__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// --- Brand -----------------------------------------------------------------
+.keel-sider__brand {
+  flex-shrink: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.keel-sider__brand-logo {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, @indigo-accent, #8f7bff);
+  box-shadow: 0 4px 12px rgba(108, 99, 255, 0.35);
+
+  img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+  }
+}
+
+.keel-sider__brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--ant-color-text);
+}
+
+// Collapsed: center the logo badge, drop the wordmark.
+.ant-layout-sider-collapsed {
+  .keel-sider__brand {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+// --- Menu region (the only scroll container) -------------------------------
+.keel-sider__menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 12px;
+
+  .ant-menu {
+    font-size: 14px;
+  }
+
+  .ant-menu-item,
+  .ant-menu-submenu-title {
+    height: 42px;
+    line-height: 42px;
+    margin-block: 4px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  // Keep the icon + label rhythm tighter than AntD's default.
+  .ant-menu-item .ant-menu-item-icon,
+  .ant-menu-submenu-title .ant-menu-item-icon {
+    font-size: 18px;
+  }
+}
+
+// Collapsed menu: center icons, remove the horizontal padding.
+.ant-layout-sider-collapsed .keel-sider__menu {
+  padding-inline: 8px;
+}
+
+.keel-sider__empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ant-color-text-tertiary, rgba(0, 0, 0, 0.45));
+  font-size: 14px;
+  overflow: hidden;
+}
+
+// --- Profile card (pinned bottom) ------------------------------------------
+.keel-sider__profile {
+  flex-shrink: 0;
+  margin: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  cursor: pointer;
+  border-radius: 14px;
+  background: var(--ant-color-fill-quaternary, rgba(60, 60, 67, 0.05));
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: var(--ant-color-fill-tertiary, rgba(60, 60, 67, 0.08));
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.keel-sider__profile-avatar {
+  flex-shrink: 0;
+}
+
+.keel-sider__profile-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.keel-sider__profile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ant-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keel-sider__profile-sub {
+  font-size: 12px;
+  color: var(--ant-color-text-tertiary, rgba(60, 60, 67, 0.5));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keel-sider__profile-arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ant-color-text-quaternary, rgba(60, 60, 67, 0.35));
+}
+
+// Collapsed profile: just the avatar, centered.
+.ant-layout-sider-collapsed .keel-sider__profile {
+  justify-content: center;
+  padding: 10px 0;
+  margin-inline: 8px;
+}
+
+// ===========================================================================
+// HEADER
+// ===========================================================================
+.keel-header {
+  background: var(--ant-color-bg-elevated);
+  backdrop-filter: var(--keel-blur);
+  -webkit-backdrop-filter: var(--keel-blur);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  color: var(--ant-color-text);
+}
+
+.keel-header__crumb {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+// Search box — rounded, filled, grows to take the slack between the
+// breadcrumb and the action cluster.
+.keel-header__search {
+  flex: 1;
+  max-width: 360px;
+  margin-inline: auto 0;
+  border-radius: 999px;
+
+  &.ant-input-affix-wrapper {
+    border-radius: 999px;
+    padding-inline: 14px;
+    background: var(--ant-color-fill-quaternary, rgba(60, 60, 67, 0.05));
+    border-color: transparent;
+  }
+
+  .ant-input-prefix {
+    margin-inline-end: 8px;
+    color: var(--ant-color-text-tertiary);
+  }
+}
+
+.keel-header__actions {
+  flex-shrink: 0;
+}
+
+// Rounded-square icon buttons (toggle / bell / locale / theme).
+.keel-header__icon-btn.ant-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: var(--ant-color-text-secondary);
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: var(--ant-color-fill-tertiary, rgba(60, 60, 67, 0.08)) !important;
+    color: var(--ant-color-text) !important;
+  }
+}
+
+.keel-header__tenant.ant-btn,
+.keel-header__user.ant-btn {
+  height: 38px;
+  border-radius: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: var(--ant-color-fill-tertiary, rgba(60, 60, 67, 0.08)) !important;
+  }
+}
+
+// ===========================================================================
+// TABS strip — sits between header and content.
+// ===========================================================================
+.keel-tabs.ant-tabs-card {
+  background: var(--ant-color-bg-elevated);
+  backdrop-filter: var(--keel-blur);
+  -webkit-backdrop-filter: var(--keel-blur);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+
+  .ant-tabs-nav {
+    margin: 0;
+  }
+
+  .ant-tabs-nav::before {
+    border: none;
+  }
+
+  .ant-tabs-tab {
+    border: none !important;
+    background: transparent !important;
+    border-radius: 999px;
+    padding: 4px 14px !important;
+    margin: 8px 4px 8px 0 !important;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: var(--ant-color-fill-tertiary, rgba(60, 60, 67, 0.06)) !important;
+    }
+  }
+
+  .ant-tabs-tab-active {
+    background: var(--ant-color-primary-bg, rgba(10, 132, 255, 0.1)) !important;
+
+    .ant-tabs-tab-btn {
+      font-weight: 600;
+    }
+  }
+}
+
+// ===========================================================================
+// DARK MODE — indigo "branded" sider + dark frosted chrome (UI reference).
+// ===========================================================================
+[data-theme='dark'] {
+  // --- Sider: indigo gradient surface ---
+  .keel-sider .ant-layout-sider-children {
+    background: linear-gradient(180deg, @indigo-800 0%, @indigo-900 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .keel-sider__brand-name {
+    color: @indigo-text;
+  }
+
+  // Menu: transparent base, light text, indigo-pill selection.
+  .keel-sider__menu {
+    .ant-menu {
+      color: @indigo-text-dim;
+    }
+
+    .ant-menu-item,
+    .ant-menu-submenu-title {
+      color: @indigo-text-dim !important;
+    }
+
+    .ant-menu-item .anticon,
+    .ant-menu-submenu-title .anticon {
+      color: @indigo-text-mute;
+    }
+
+    // Hover: subtle white wash.
+    .ant-menu-item:hover,
+    .ant-menu-submenu-title:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: @indigo-text !important;
+
+      .anticon {
+        color: @indigo-text !important;
+      }
+    }
+
+    // Selected leaf: lighter indigo pill, white text, accent icon.
+    .ant-menu-item-selected {
+      background: @indigo-600 !important;
+      color: @indigo-text !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+
+      .anticon {
+        color: @indigo-text !important;
+      }
+    }
+
+    // Open submenu parent title stays readable.
+    .ant-menu-submenu-selected > .ant-menu-submenu-title {
+      color: @indigo-text !important;
+    }
+
+    // Submenu popup (collapsed mode) inherits the indigo skin.
+    .ant-menu-sub.ant-menu-inline {
+      background: transparent !important;
+    }
+  }
+
+  .keel-sider__empty {
+    color: @indigo-text-mute;
+  }
+
+  // Profile card: elevated indigo tile.
+  .keel-sider__profile {
+    background: rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .keel-sider__profile-name {
+    color: @indigo-text;
+  }
+
+  .keel-sider__profile-sub {
+    color: @indigo-text-dim;
+  }
+
+  .keel-sider__profile-arrow {
+    color: @indigo-text-mute;
+  }
+
+  // --- Header: dark frosted bar ---
+  .keel-header {
+    background: rgba(28, 27, 58, 0.72);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .keel-header__search.ant-input-affix-wrapper {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .keel-header__icon-btn.ant-btn:hover,
+  .keel-header__tenant.ant-btn:hover,
+  .keel-header__user.ant-btn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  // --- Tabs strip: match the dark frosted header tint ---
+  .keel-tabs.ant-tabs-card {
+    background: rgba(28, 27, 58, 0.72);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    .ant-tabs-tab:hover {
+      background: rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .ant-tabs-tab-active {
+      background: rgba(108, 99, 255, 0.22) !important;
+    }
+  }
+}

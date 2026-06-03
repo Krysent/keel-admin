@@ -37,8 +37,9 @@ export interface MenuItem {
  *
  * Filtering rules:
  *   - `hidden:true`  → skipped (route still exists, just not visible).
- *   - `redirect`     → skipped because the redirect collapses to the
- *                      target node which is already in the tree.
+ *   - `redirect`     → the node IS kept in the sidebar (it's a parent
+ *                      group item), but clicking it will navigate to
+ *                      the redirect path instead of a component.
  *
  * Empty children arrays are dropped so AntD renders a leaf, not an
  * empty submenu.
@@ -47,7 +48,6 @@ export function buildMenuItems(menus: readonly MenuNode[]): MenuItem[] {
   const out: MenuItem[] = [];
   for (const node of menus) {
     if (node.hidden) continue;
-    if (node.redirect !== undefined) continue;
     const children =
       node.children && node.children.length > 0
         ? buildMenuItems(node.children)

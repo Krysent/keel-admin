@@ -55,11 +55,12 @@ export function removeTab(tabs: readonly TabItem[], key: string): TabItem[] {
 /**
  * Pick the next active tab key after closing `closingKey`.
  *
- * Strategy mirrors common admin templates:
+ * Strategy (Requirement 22.6):
  *   1. If the closed tab wasn't the active one, keep the active key.
- *   2. Otherwise prefer the tab to the LEFT of the closed one.
- *   3. Failing that, prefer the tab to the RIGHT.
- *   4. If the post-removal list is empty, return `null`.
+ *   2. Otherwise prefer the tab to the RIGHT of the closed one.
+ *   3. Failing that, prefer the tab to the LEFT.
+ *   4. If the post-removal list is empty, return `null` (caller should
+ *      navigate to `/`).
  *
  * The function operates on the *pre-removal* `tabs` snapshot so callers
  * can decide the next route before mutating the store.
@@ -74,10 +75,11 @@ export function pickActiveAfterClose(
   }
   const idx = tabs.findIndex((t) => t.key === closingKey);
   if (idx < 0) return activeKey;
-  const left = tabs[idx - 1];
-  if (left) return left.key;
+  // Requirement 22.6: prefer the right neighbor first, then the left.
   const right = tabs[idx + 1];
   if (right) return right.key;
+  const left = tabs[idx - 1];
+  if (left) return left.key;
   return null;
 }
 

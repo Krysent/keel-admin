@@ -7,7 +7,8 @@
  * base surface tokens differ in dark mode), so we export a single object.
  *
  * Component coverage (Task 7 — second bullet):
- *   Button / Card / Modal / Table / Input / Menu / Tabs / Tag / Tooltip
+ *   Button / Card / Modal / Table / Input / Menu / Tabs / Tag / Tooltip /
+ *   Layout (Header + Sider background tokens for correct light/dark surfaces)
  */
 import type { ThemeConfig } from 'antd';
 
@@ -25,6 +26,18 @@ export const componentOverrides: NonNullable<ThemeConfig['components']> = {
     borderRadiusLG: 16,
     paddingLG: 20,
     headerFontSize: 16,
+  },
+  Layout: {
+    // Header uses the elevated (frosted-glass) surface token so it reads
+    // correctly in both light and dark mode. `global.css` adds the actual
+    // backdrop-filter; this token ensures AntD doesn't override the bg.
+    headerBg: 'transparent',
+    // Sider background is transparent — the `.ant-layout-sider-children`
+    // div in global.css carries the real bg so the border aligns cleanly.
+    siderBg: 'transparent',
+    // Body background follows the layout base token (light: #F2F2F7,
+    // dark: #000000) — set via `colorBgLayout` in tokens.ts.
+    bodyBg: 'transparent',
   },
   Modal: {
     // 20px corners match iOS sheet presentations.

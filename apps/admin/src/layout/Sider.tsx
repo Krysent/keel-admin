@@ -39,18 +39,20 @@
  */
 
 import { useEffect, useRef, useMemo, useState, type ReactNode } from 'react';
-import { Layout, Menu } from 'antd';
+import { Avatar, Dropdown, Layout, Menu } from 'antd';
 import * as AntIcons from '@ant-design/icons';
+import { RightOutlined, UserOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { useAppStore } from '../stores/app.store.js';
-import { useUserStore } from '../stores/user.store.js';
+import { useAppStore } from '../stores/app.store';
+import { useUserStore } from '../stores/user.store';
 import {
   ancestorPaths,
   buildMenuItems,
   type MenuItem,
-} from './lib/menu-tree.js';
+} from './lib/menu-tree';
+import { useUserMenu } from './lib/use-user-menu';
 
 const { Sider: AntSider } = Layout;
 
@@ -99,14 +101,22 @@ function translateItems(
   });
 }
 
-export function Sider(): JSX.Element {
+export interface SiderProps {
+  /** Extra inline styles merged onto the AntD Sider element. Used by
+   * `BasicLayout` to inject sticky positioning (Requirement 22.14). */
+  style?: import('react').CSSProperties;
+}
+
+export function Sider({ style }: SiderProps = {}): JSX.Element {
   const collapsed = useAppStore((s) => s.collapsed);
   const setCollapsed = useAppStore((s) => s.setCollapsed);
   const menus = useUserStore((s) => s.menus);
+  const userInfo = useUserStore((s) => s.userInfo);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
+  const userMenu = useUserMenu();
 
   /**
    * Track the collapsed state that was in place *before* a viewport-triggered
@@ -190,10 +200,18 @@ export function Sider(): JSX.Element {
    * Uses a dedicated i18n key with locale-aware defaultValue fallbacks so the
    * placeholder is correct even before the translation bundle loads.
    */
-  const isZhCN = i18n.language === 'zh-CN' || i18n.language.startsWith('zh');
+  const isZhCN = i18n.language === 'zh-CN' || i18n.language?.startsWith('zh');
   const emptyMenuText = t('sider.noMenu', {
     defaultValue: isZhCN ? '暂无菜单' : 'No menu',
   });
+
+  // Profile-card labels — small enough to build inline. The card shows the
+  // logged-in user's display name + email (or a localised "Guest"
+  // fallback when the profile hasn't loaded yet).
+  const displayName =
+    userInfo?.displayName ??
+    t('header.user.guest', { defaultValue: isZhCN ? '访客' : 'Guest' });
+  const subtitle = userInfo?.email ?? userInfo?.username ?? '';
 
   return (
     <AntSider
@@ -203,51 +221,74 @@ export function Sider(): JSX.Element {
       collapsed={collapsed}
       onCollapse={setCollapsed}
       trigger={null}
+      className="keel-sider"
       style={{
-        background: 'transparent',
         transition: 'width 200ms ease',
         overflow: 'hidden',
+        // Sticky positioning injected by BasicLayout (Req 22.14).
+        // Background is handled by .ant-layout-sider-children in index.less
+        // so the border aligns with the sider content area, not the outer wrapper.
+        ...style,
       }}
     >
-      <div
-        style={{
-          height: 56,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 600,
-          fontSize: 16,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {collapsed ? 'K' : 'Keel Admin'}
-      </div>
-      {translatedItems.length === 0 ? (
-        /* Empty-menus placeholder — Req 22.13. */
-        <div
-          style={{
-            padding: '24px 16px',
-            textAlign: 'center',
-            color: 'rgba(0, 0, 0, 0.45)',
-            fontSize: 14,
-            whiteSpace: collapsed ? 'nowrap' : 'normal',
-            overflow: 'hidden',
-          }}
-        >
-          {collapsed ? null : emptyMenuText}
+      {/* Vertical shell: brand (fixed) · menu (scrolls) · profile (pinned). */}
+      <div className="keel-sider__inner">
+        {/* Brand area — logo badge + wordmark, collapses to the badge only. */}
+        <div className="keel-sider__brand">
+          <span className="keel-sider__brand-logo" aria-hidden>
+            <img src="/keel-admin-logo.png" alt="" />
+          </span>
+          {!collapsed && (
+            <span className="keel-sider__brand-name">Keel Admin</span>
+          )}
         </div>
-      ) : (
-        <Menu
-          mode="inline"
-          items={translatedItems}
-          selectedKeys={selectedKeys}
-          openKeys={openKeys}
-          onOpenChange={setOpenKeys}
-          onClick={(info) => navigate(info.key)}
-          style={{ borderInlineEnd: 'none', background: 'transparent' }}
-        />
-      )}
+
+        {/* Menu region — the only scrollable part of the sider. */}
+        <div className="keel-sider__menu">
+          {translatedItems.length === 0 ? (
+            /* Empty-menus placeholder — Req 22.13. */
+            <div
+              className="keel-sider__empty"
+              style={{ whiteSpace: collapsed ? 'nowrap' : 'normal' }}
+            >
+              {collapsed ? null : emptyMenuText}
+            </div>
+          ) : (
+            <Menu
+              mode="inline"
+              items={translatedItems}
+              selectedKeys={selectedKeys}
+              openKeys={collapsed ? [] : openKeys}
+              onOpenChange={setOpenKeys}
+              onClick={(info) => navigate(info.key)}
+              style={{ borderInlineEnd: 'none', background: 'transparent' }}
+            />
+          )}
+        </div>
+
+        {/* Profile card — pinned to the bottom; opens the user menu on click. */}
+        <Dropdown menu={userMenu} trigger={['click']} placement="topRight">
+          <button type="button" className="keel-sider__profile" aria-label={displayName}>
+            <Avatar
+              size={collapsed ? 32 : 40}
+              src={userInfo?.avatar}
+              icon={<UserOutlined />}
+              className="keel-sider__profile-avatar"
+            />
+            {!collapsed && (
+              <>
+                <span className="keel-sider__profile-meta">
+                  <span className="keel-sider__profile-name">{displayName}</span>
+                  {subtitle && (
+                    <span className="keel-sider__profile-sub">{subtitle}</span>
+                  )}
+                </span>
+                <RightOutlined className="keel-sider__profile-arrow" />
+              </>
+            )}
+          </button>
+        </Dropdown>
+      </div>
     </AntSider>
   );
 }

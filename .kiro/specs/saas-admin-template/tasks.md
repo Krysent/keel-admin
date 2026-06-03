@@ -266,7 +266,7 @@
     - 所有可交互元素 touch target 高度 ≥ 44px、宽度 ≥ 44px，相邻元素垂直间距 ≥ 8px
     - _Requirements: 21.11_
 
-- [ ] 20. BasicLayout 首页框架完善（含 Dashboard 页）
+- [x] 20. BasicLayout 首页框架完善（含 Dashboard 页）
   - [x] 20.1 完善 Sider 响应式折叠与过渡动效
     - Sider 宽度 240px，折叠后 80px，CSS `transition: width 200ms ease`（不超过 300ms）
     - 折叠按钮点击：触发过渡并同步 `appStore.collapsed` 取反
@@ -282,72 +282,72 @@
     - 依次执行：调用 `authService.logout()`（失败时不阻断）→ 所有 store `reset()` → `tokenManager.clear()` → `navigate('/login', { replace: true })`
     - _Requirements: 22.8_
 
-  - [ ] 20.4 完善 Breadcrumb 动态更新
+  - [x] 20.4 完善 Breadcrumb 动态更新
     - 路由路径变化时，在 200ms 内基于 `userStore.menus` 树解析祖先链，根节点为首页，格式"一级菜单 / 二级菜单"
     - 路由不在菜单树中时，仅显示首页节点
     - _Requirements: 22.4_
 
-  - [~] 20.5 完善 Tabs Bar 页签管理
+  - [x] 20.5 完善 Tabs Bar 页签管理
     - 首次访问新路由：在末尾追加页签并激活；路由已存在时直接激活，不追加重复项
     - `affix: true` 的页签不渲染关闭按钮；关闭普通页签后优先激活右侧相邻页签，否则激活左侧，若 Tabs 为空则跳转 `/`
     - _Requirements: 22.5, 22.6_
 
-  - [~] 20.6 实现 Dashboard 页
+  - [x] 20.6 实现 Dashboard 页
     - 路由 `/dashboard`：渲染欢迎标题（zh-CN：`你好，{displayName}！`，en-US：`Hello, {displayName}!`）与当前日期（zh-CN：`YYYY年MM月DD日`，en-US：`MMMM D, YYYY`），使用 `PageContainer` 包裹
     - 统计卡片区：恰好 4 张卡片（今日用户数、在线租户数、待处理工单数、系统状态），数据由前端静态 Mock 提供，每张卡片 `borderRadius ≥ 16px`、`boxShadow: 0 2px 8px rgba(0,0,0,0.06)`、`bordered={false}`
     - _Requirements: 22.9, 22.10_
 
-  - [~] 20.7 确保语言/主题平滑切换与内容区滚动行为
+  - [x] 20.7 确保语言/主题平滑切换与内容区滚动行为
     - 语言切换：Sider 菜单、Header 控件、Breadcrumb、Tabs 标题在同一 React 更新批次内同步更新，不刷页面
     - 主题切换：ConfigProvider `theme` prop 在同一渲染周期更新，BasicLayout 及子组件 100ms 内完成重绘，不触发 `window.location.reload()`
     - 内容区 `overflow: auto`，Sider（sticky）与 Header（`position: sticky, top: 0`）不随内容区滚动
     - _Requirements: 22.11, 22.12, 22.14_
 
-- [ ] 21. 用户管理 CRUD 页面 Pro-Components 重构
-  - [~] 21.1 用 ProTable 替换现有用户列表
+- [x] 21. 用户管理 CRUD 页面 Pro-Components 重构
+  - [x] 21.1 用 ProTable 替换现有用户列表
     - 将 `pages/system/user/index.tsx` 的列表重构为 `ProTable<UserInfo>`，数据加载通过 `request` prop 直接驱动，返回类型 `{ data: UserInfo[]; success: boolean; total: number }`，不使用 `useTable` hook
     - 默认列：username、displayName、email（挂 `permission: 'user:list'`）、roles（Tag 列表）、操作列（编辑/删除按钮）
     - 工具栏强制开启：`setting: true`、`reload: true`、`density: true`、`fullScreen: true`（不可禁用）
     - _Requirements: 23.1, 23.2, 23.10, 23.13_
 
-  - [~] 21.2 实现 ProTable 搜索表单与分页
+  - [x] 21.2 实现 ProTable 搜索表单与分页
     - 搜索区字段：`keyword`（字符串，模糊匹配）与 `status`（枚举 `'active' | 'disabled' | undefined`），透传给 `userService.list` 查询参数
     - 分页：`defaultPageSize: 10`，分页器左侧展示总记录数（zh-CN：`共 N 条`，en-US：`Total N items`）
     - 重置按钮：清空 `keyword`/`status` 为 `undefined`，以 `{ current: 1, pageSize: 10 }` 重新调用
     - _Requirements: 23.3, 23.4, 23.14_
 
-  - [~] 21.3 实现新建用户 Modal（ProForm）
+  - [x] 21.3 实现新建用户 Modal（ProForm）
     - "新建用户"按钮被 `<Auth code="user:create">` 包裹，持有权限时点击打开 `Create_Modal`
     - 表单字段：用户名（必填，maxLength 64，重复时字段下方提示"用户名已存在"）、显示名（必填，maxLength 64）、邮箱（选填，email 格式校验）、初始密码（必填，minLength 6，maxLength 128）、角色（多选，admin / editor / viewer）
     - 提交成功：关闭 Modal、刷新列表、`message.success`（zh-CN：`操作成功`，en-US：`Success`）
     - 提交失败：保持 Modal 打开，在 Form 顶部通过 Alert（type="error"）展示 `BizError.message`，回退 i18n 键 `common.error.unknown`
     - _Requirements: 23.5, 23.7_
 
-  - [~] 21.4 实现编辑用户 Modal（ProForm）
+  - [x] 21.4 实现编辑用户 Modal（ProForm）
     - 编辑按钮被 `<Auth code="user:update">` 包裹，点击打开预填当前行数据的 ProForm
     - 用户名字段 `disabled={true}` 不可修改，密码字段不渲染，其余字段（显示名、邮箱、角色）可编辑
     - 成功/失败处理同新建 Modal
     - _Requirements: 23.6, 23.7_
 
-  - [~] 21.5 实现删除用户 Popconfirm
+  - [x] 21.5 实现删除用户 Popconfirm
     - 删除按钮被 `<Auth code="user:delete">` 包裹，点击弹出二次确认
     - 确认文案 zh-CN：`确定删除用户 "{displayName}" 吗？`，确认后调用 `userService.remove(id)`，成功后刷新表格并展示 `message.success`
     - _Requirements: 23.8_
 
-  - [~] 21.6 确保权限守卫与列权限过滤
+  - [x] 21.6 确保权限守卫与列权限过滤
     - 无权限时新建/编辑/删除按钮从 DOM 中移除（不渲染），不影响其他元素布局
     - email 列通过 `filterColumnsByPermission` 过滤（不持有 `user:list` 时移除该列）
     - _Requirements: 23.9, 23.10_
 
-  - [~] 21.7 补全 Mock Handler 支持完整 CRUD
+  - [x] 21.7 补全 Mock Handler 支持完整 CRUD
     - 在 `mock/user.ts` 中确保以下 handler 存在且正确信封化：GET `/api/users`（支持 keyword/status/分页参数）、POST `/api/users`、PUT `/api/users/:id`、DELETE `/api/users/:id`
     - _Requirements: 23.11_
 
-  - [~] 21.8 验证 pro-components 依赖缺失时构建中断行为
+  - [x] 21.8 验证 pro-components 依赖缺失时构建中断行为
     - 在 env-validator 或 vite.config.ts 中添加检测：若 `@ant-design/pro-components` 解析失败，输出包含安装命令 `pnpm add @ant-design/pro-components --filter @keel/admin` 的错误信息并中断构建
     - _Requirements: 23.12_
 
-- [~] 22. 最终检查点：新增需求全面验收
+- [x] 22. 最终检查点：新增需求全面验收
   - 在 mock 模式下完整走通登录页（含"记住我"、移动端、Enter 提交、重定向）
   - 在 mock 模式下完整走通 BasicLayout（折叠动效、Dashboard 页、语言/主题切换、Tabs/Breadcrumb 联动）
   - 在 mock 模式下完整走通用户管理 ProTable CRUD（搜索、分页、新建、编辑、删除、权限列过滤）

@@ -13,13 +13,13 @@
  *   - menu-tree primitives      — pure helpers (Sider items, breadcrumb chain)
  */
 
-export { BasicLayout } from './BasicLayout.js';
-export { ThemeBridge } from './ThemeBridge.js';
-export { LocaleBridge } from './LocaleBridge.js';
-export { Header } from './Header.js';
-export { Sider } from './Sider.js';
-export { Tabs } from './Tabs.js';
-export { Breadcrumb } from './Breadcrumb.js';
+export { BasicLayout } from './BasicLayout';
+export { ThemeBridge } from './ThemeBridge';
+export { LocaleBridge } from './LocaleBridge';
+export { Header } from './Header';
+export { Sider } from './Sider';
+export { Tabs } from './Tabs';
+export { Breadcrumb } from './Breadcrumb';
 
 export {
   appendTab,
@@ -27,11 +27,11 @@ export {
   pickActiveAfterClose,
   removeTab,
   tabFromMenuNode,
-} from './lib/tab-reconciler.js';
+} from './lib/tab-reconciler';
 
 export {
   ancestorPaths,
   buildMenuItems,
   findMenuPath,
   type MenuItem,
-} from './lib/menu-tree.js';
+} from './lib/menu-tree';
