@@ -175,14 +175,6 @@ export function Header({ style }: HeaderProps = {}): JSX.Element {
           icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
-
-        <Dropdown menu={userMenu} trigger={['click']} placement="bottomRight">
-          <Button type="text" className="keel-header__user" icon={<UserOutlined />}>
-            {userInfo?.displayName ?? t('header.user.guest', {
-              defaultValue: isZhCN ? '访客' : 'Guest',
-            })}
-          </Button>
-        </Dropdown>
       </Space>
     </AntHeader>
   );

@@ -75,7 +75,7 @@ export function BasicLayout(): JSX.Element {
            * when the content area to the right is independently
            * scrolling (Req 22.14).
            */}
-          <Sider style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'auto' }} />
+          <Sider style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }} />
           {/*
            * Right column: flex column, fills remaining width.
            * `overflow: hidden` prevents the column itself from
@@ -108,6 +108,7 @@ export function BasicLayout(): JSX.Element {
              */}
             <Content
               data-testid="basic-layout-content"
+              className="keel-content"
               style={{ padding: 16, overflow: 'auto', flex: 1, minHeight: 0 }}
             >
               <Outlet />

@@ -223,7 +223,11 @@ export function Sider({ style }: SiderProps = {}): JSX.Element {
       trigger={null}
       className="keel-sider"
       style={{
-        transition: 'width 200ms ease',
+        // The collapse transition is defined in index.less so it can
+        // animate all of AntD's width-driving properties (width / flex /
+        // min-width / max-width) together with the iOS easing curve — an
+        // inline `transition: width` alone makes the other three snap and
+        // produces the stutter we're fixing here.
         overflow: 'hidden',
         // Sticky positioning injected by BasicLayout (Req 22.14).
         // Background is handled by .ant-layout-sider-children in index.less

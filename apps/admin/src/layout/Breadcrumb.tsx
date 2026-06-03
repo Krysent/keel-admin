@@ -52,7 +52,7 @@ export function Breadcrumb(): JSX.Element {
 
   if (!chain || chain.length === 0) {
     // Route not in menu tree — show only the home node.
-    return <AntBreadcrumb items={[homeItem]} />;
+    return <AntBreadcrumb className="keel-breadcrumb" items={[homeItem]} />;
   }
 
   const menuItems = chain.map((node, idx) => {
@@ -66,5 +66,5 @@ export function Breadcrumb(): JSX.Element {
     };
   });
 
-  return <AntBreadcrumb items={[homeItem, ...menuItems]} />;
+  return <AntBreadcrumb className="keel-breadcrumb" items={[homeItem, ...menuItems]} />;
 }
