@@ -36,17 +36,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type {
-  AxiosAdapter,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
 
-import {
-  createHttp,
-  createTokenManager,
-  type RefreshFn,
-} from '../src/index.js';
+import { createHttp, createTokenManager, type RefreshFn } from '../src/index.ts';
+
+import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
  * Refresh function never invoked in these tests. Provided only because
@@ -102,15 +95,9 @@ function makeClient(options: {
   const http = createHttp({
     baseURL: options.baseURL ?? 'http://localhost',
     tokenManager,
-    ...(options.tenantHeader !== undefined
-      ? { tenantHeader: options.tenantHeader }
-      : {}),
-    ...(options.getTenantId !== undefined
-      ? { getTenantId: options.getTenantId }
-      : {}),
-    ...(options.getLocale !== undefined
-      ? { getLocale: options.getLocale }
-      : {}),
+    ...(options.tenantHeader !== undefined ? { tenantHeader: options.tenantHeader } : {}),
+    ...(options.getTenantId !== undefined ? { getTenantId: options.getTenantId } : {}),
+    ...(options.getLocale !== undefined ? { getLocale: options.getLocale } : {}),
   });
   http.defaults.adapter = adapter;
 
@@ -141,9 +128,7 @@ describe('header injection — Authorization (Requirement 5.9)', () => {
   it('stamps `Bearer <access>` when the token manager holds an access token', async () => {
     const { http, seen } = makeClient({ initialAccess: 'access-AAA' });
     await http.get('/me');
-    expect(readHeader(seen[0]!.headers, 'Authorization')).toBe(
-      'Bearer access-AAA',
-    );
+    expect(readHeader(seen[0]!.headers, 'Authorization')).toBe('Bearer access-AAA');
   });
 
   it('omits Authorization when no access token is held', async () => {

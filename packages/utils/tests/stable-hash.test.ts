@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canonicalize, stableHash } from '../src/stable-hash.js';
+import { canonicalize, stableHash } from '../src/stable-hash.ts';
 
 describe('stableHash', () => {
   it('is stable for primitive equality', () => {

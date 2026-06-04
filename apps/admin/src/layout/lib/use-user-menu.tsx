@@ -13,7 +13,6 @@
  */
 
 import { useMemo } from 'react';
-import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +22,8 @@ import { tokenManager } from '../../services/http';
 import { useAppStore } from '../../stores/app.store';
 import { useTenantStore } from '../../stores/tenant.store';
 import { useUserStore } from '../../stores/user.store';
+
+import type { MenuProps } from 'antd';
 
 export function useUserMenu(): MenuProps {
   const { t, i18n } = useTranslation();

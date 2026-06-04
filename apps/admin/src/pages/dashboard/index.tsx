@@ -18,17 +18,17 @@
  * adding a `dayjs` dependency that doesn't yet exist in this package.
  */
 
-import { Card, Col, Row, Typography } from 'antd';
 import {
   TeamOutlined,
   UserAddOutlined,
   ToolOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
+import { Card, Col, Row, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 
-import { useUserStore } from '../../stores/user.store';
 import { useAppStore } from '../../stores/app.store';
+import { useUserStore } from '../../stores/user.store';
 
 const { Title, Text } = Typography;
 
@@ -124,7 +124,7 @@ function formatCurrentDate(locale: string): string {
 // ---------------------------------------------------------------------------
 
 const CARD_STYLE: React.CSSProperties = {
-  borderRadius: 16,              // ≥ 16px
+  borderRadius: 16, // ≥ 16px
   boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
   height: '100%',
 };
@@ -156,9 +156,7 @@ export default function DashboardPage(): JSX.Element {
   // Format date — prefer i18n.language for live locale changes, fall back
   // to the persisted appStore locale when i18next hasn't switched yet.
   const dateLocale = i18n.language || locale;
-  const formattedDate = formatCurrentDate(
-    dateLocale.startsWith('zh') ? 'zh-CN' : 'en-US',
-  );
+  const formattedDate = formatCurrentDate(dateLocale.startsWith('zh') ? 'zh-CN' : 'en-US');
 
   // Stat card titles respect the same locale
   const resolveTitle = (card: StatCard): string =>
@@ -173,9 +171,7 @@ export default function DashboardPage(): JSX.Element {
         ? t('dashboard.stats.systemStatus.normal', { defaultValue: '正常' })
         : t('dashboard.stats.systemStatus.normal.en', { defaultValue: 'Normal' });
     }
-    return typeof card.value === 'number'
-      ? card.value.toLocaleString()
-      : card.value;
+    return typeof card.value === 'number' ? card.value.toLocaleString() : card.value;
   };
 
   return (
@@ -196,10 +192,7 @@ export default function DashboardPage(): JSX.Element {
       <Row gutter={[16, 16]}>
         {STAT_CARDS.map((card) => (
           <Col key={card.titleKey} xs={24} sm={12} lg={6}>
-            <Card
-              bordered={false}
-              style={CARD_STYLE}
-            >
+            <Card bordered={false} style={CARD_STYLE}>
               <div
                 style={{
                   display: 'flex',

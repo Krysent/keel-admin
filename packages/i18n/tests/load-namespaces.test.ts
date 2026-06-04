@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createI18n } from '../src/index.js';
+import { createI18n } from '../src/index.ts';
 
 /**
  * Task 6.1 — namespace lazy-load verification (example-based).
@@ -18,11 +18,7 @@ import { createI18n } from '../src/index.js';
 describe('@keel/i18n — namespace lazy-load (Requirement 8.2)', () => {
   it('preloads only `common` synchronously during init', async () => {
     const reads = vi.fn(
-      (
-        _lng: string,
-        _ns: string,
-        cb: (err: unknown, data: Record<string, unknown>) => void,
-      ) => {
+      (_lng: string, _ns: string, cb: (err: unknown, data: Record<string, unknown>) => void) => {
         cb(null, { hello: 'world' });
       },
     );
@@ -46,11 +42,7 @@ describe('@keel/i18n — namespace lazy-load (Requirement 8.2)', () => {
 
   it('only fetches each business namespace once across repeated route entries', async () => {
     const reads = vi.fn(
-      (
-        _lng: string,
-        _ns: string,
-        cb: (err: unknown, data: Record<string, unknown>) => void,
-      ) => {
+      (_lng: string, _ns: string, cb: (err: unknown, data: Record<string, unknown>) => void) => {
         cb(null, {});
       },
     );
@@ -61,8 +53,7 @@ describe('@keel/i18n — namespace lazy-load (Requirement 8.2)', () => {
       backend: { read: reads },
     });
 
-    const fetchesFor = (ns: string) =>
-      reads.mock.calls.filter((c) => c[1] === ns).length;
+    const fetchesFor = (ns: string) => reads.mock.calls.filter((c) => c[1] === ns).length;
 
     // Simulated route change: enter the `order` module for the first time.
     await i18n.loadNamespaces('order');

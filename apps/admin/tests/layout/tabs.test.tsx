@@ -22,13 +22,10 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-import { useAppStore } from '../../src/stores/app.store.js';
-import {
-  appendTab,
-  pickActiveAfterClose,
-  removeTab,
-} from '../../src/layout/lib/tab-reconciler.js';
+import { appendTab, pickActiveAfterClose, removeTab } from '../../src/layout/lib/tab-reconciler.ts';
+import { useAppStore } from '../../src/stores/app.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
 import type { TabItem } from '@keel/types';
 
 // ---------------------------------------------------------------------------
@@ -143,19 +140,31 @@ describe('Tabs — affix:true tab cannot be removed (Req 22.6)', () => {
 describe('Tabs — close activates right neighbor first (Req 22.6)', () => {
   it('prefers the right neighbor when closing an active tab in the middle', () => {
     // [HOME, USER*, ORDER] → close USER → activate ORDER
-    const result = pickActiveAfterClose([HOME_TAB, USER_TAB, ORDER_TAB], USER_TAB.key, USER_TAB.key);
+    const result = pickActiveAfterClose(
+      [HOME_TAB, USER_TAB, ORDER_TAB],
+      USER_TAB.key,
+      USER_TAB.key,
+    );
     expect(result).toBe(ORDER_TAB.key);
   });
 
   it('falls back to the left neighbor when closing the rightmost active tab', () => {
     // [HOME, USER, ORDER*] → close ORDER → activate USER (no right exists)
-    const result = pickActiveAfterClose([HOME_TAB, USER_TAB, ORDER_TAB], ORDER_TAB.key, ORDER_TAB.key);
+    const result = pickActiveAfterClose(
+      [HOME_TAB, USER_TAB, ORDER_TAB],
+      ORDER_TAB.key,
+      ORDER_TAB.key,
+    );
     expect(result).toBe(USER_TAB.key);
   });
 
   it('activates the right neighbor when closing the leftmost tab', () => {
     // [HOME*, USER, ORDER] → close HOME → activate USER (right)
-    const result = pickActiveAfterClose([HOME_TAB, USER_TAB, ORDER_TAB], HOME_TAB.key, HOME_TAB.key);
+    const result = pickActiveAfterClose(
+      [HOME_TAB, USER_TAB, ORDER_TAB],
+      HOME_TAB.key,
+      HOME_TAB.key,
+    );
     expect(result).toBe(USER_TAB.key);
   });
 

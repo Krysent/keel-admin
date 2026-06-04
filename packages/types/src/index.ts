@@ -9,18 +9,12 @@
  * over time — see Requirement 2.6 ("Type as contract").
  */
 
-export type {
-  ApiEnvelope,
-  PageResult,
-  PageQuery,
-  SortDirection,
-  SortDescriptor,
-} from './api.js';
+export type { ApiEnvelope, PageResult, PageQuery, SortDirection, SortDescriptor } from './api.ts';
 
-export type { UserInfo, TokenPair, Tenant } from './user.js';
+export type { UserInfo, TokenPair, Tenant } from './user.ts';
 
-export type { MenuNode, TabItem } from './menu.js';
+export type { MenuNode, TabItem } from './menu.ts';
 
-export type { BizErrorPayload, HttpErrorKind } from './error.js';
+export type { BizErrorPayload, HttpErrorKind } from './error.ts';
 
-export type { LocaleCode, ThemeMode } from './locale.js';
+export type { LocaleCode, ThemeMode } from './locale.ts';

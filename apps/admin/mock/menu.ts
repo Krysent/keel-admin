@@ -4,9 +4,9 @@
  * Validates: Requirements 11.1, 11.3, 11.4
  */
 
-import type { MockMethod } from 'vite-plugin-mock';
-
 import { wrap } from './_utils';
+
+import type { MockMethod } from 'vite-plugin-mock';
 
 const mockMenuTree = [
   {

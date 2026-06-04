@@ -17,9 +17,10 @@
  * Validates: Requirements 23.1, 23.2, 23.3, 23.4, 23.5, 23.7, 23.8, 23.10, 23.13, 23.14
  */
 
-import { useRef, useState, useCallback } from 'react';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { ProTable } from '@ant-design/pro-components';
+import { BizError, isBizError } from '@keel/http';
+import { filterColumnsByPermission, type KeelColumn } from '@keel/ui';
 import {
   Alert,
   App as AntApp,
@@ -33,27 +34,22 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { UserInfo } from '@keel/types';
-import { filterColumnsByPermission, type KeelColumn } from '@keel/ui';
 
-import { BizError, isBizError } from '@keel/http';
-
-import { PERMISSIONS } from '../../../config/permissions';
 import { Auth } from '../../../components/Auth';
-import { useUserStore } from '../../../stores/user.store';
-import { useAppStore } from '../../../stores/app.store';
+import { PERMISSIONS } from '../../../config/permissions';
 import {
   userService,
   type UserListQuery,
   type CreateUserParams,
   type UpdateUserParams,
 } from '../../../services/index';
+import { useAppStore } from '../../../stores/app.store';
+import { useUserStore } from '../../../stores/user.store';
+
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type { UserInfo } from '@keel/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,9 +86,7 @@ function isUsernameDuplicateError(err: unknown): err is BizError {
   const msg = err.message.toLowerCase();
   return (
     msg.includes('username') &&
-    (msg.includes('already exists') ||
-      msg.includes('duplicate') ||
-      msg.includes('已存在'))
+    (msg.includes('already exists') || msg.includes('duplicate') || msg.includes('已存在'))
   );
 }
 
@@ -215,12 +209,7 @@ function buildColumns(opts: {
               okButtonProps={{ danger: true }}
             >
               <Tooltip title="Delete">
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
+                <Button type="link" size="small" danger icon={<DeleteOutlined />} />
               </Tooltip>
             </Popconfirm>
           </Auth>
@@ -431,10 +420,7 @@ export default function UserManagementPage(): JSX.Element {
     getDeleteCancelText,
   });
 
-  const visibleColumns = filterColumnsByPermission(
-    rawColumns,
-    permCtx,
-  ) as ProColumns<UserInfo>[];
+  const visibleColumns = filterColumnsByPermission(rawColumns, permCtx) as ProColumns<UserInfo>[];
 
   // ------ ProTable request prop (Req 23.13) ------
   // Returns { data, success, total } — the ProTable contract.
@@ -443,7 +429,9 @@ export default function UserManagementPage(): JSX.Element {
   // keyword/status are not forwarded to the API (Req 23.3, 23.14).
 
   const request = useCallback(
-    async (params: UserSearchParams): Promise<{ data: UserInfo[]; success: boolean; total: number }> => {
+    async (
+      params: UserSearchParams,
+    ): Promise<{ data: UserInfo[]; success: boolean; total: number }> => {
       try {
         const { current = 1, pageSize = 10 } = params;
         const query: UserListQuery = {
@@ -499,17 +487,12 @@ export default function UserManagementPage(): JSX.Element {
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
-          showTotal: (total) =>
-            locale === 'zh-CN' ? `共 ${total} 条` : `Total ${total} items`,
+          showTotal: (total) => (locale === 'zh-CN' ? `共 ${total} 条` : `Total ${total} items`),
         }}
         // Toolbar create button gated by user:create permission (Req 23.9)
         toolBarRender={() => [
           <Auth key="create" code={PERMISSIONS.USER.CREATE}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
               New User
             </Button>
           </Auth>,
@@ -539,11 +522,7 @@ export default function UserManagementPage(): JSX.Element {
           createForm.resetFields();
         }}
       >
-        <Form
-          form={createForm}
-          layout="vertical"
-          style={{ marginTop: 16 }}
-        >
+        <Form form={createForm} layout="vertical" style={{ marginTop: 16 }}>
           {/* BizError Alert — shown at top of form on submit failure (Req 23.7) */}
           {createError !== null && (
             <Form.Item style={{ marginBottom: 16 }}>
@@ -566,11 +545,7 @@ export default function UserManagementPage(): JSX.Element {
               { max: 64, message: '用户名最多 64 个字符 / Max 64 characters' },
             ]}
           >
-            <Input
-              placeholder="Enter username"
-              maxLength={64}
-              showCount
-            />
+            <Input placeholder="Enter username" maxLength={64} showCount />
           </Form.Item>
 
           {/* Display Name — required, maxLength 64 (Req 23.5) */}
@@ -582,11 +557,7 @@ export default function UserManagementPage(): JSX.Element {
               { max: 64, message: '显示名最多 64 个字符 / Max 64 characters' },
             ]}
           >
-            <Input
-              placeholder="Enter display name"
-              maxLength={64}
-              showCount
-            />
+            <Input placeholder="Enter display name" maxLength={64} showCount />
           </Form.Item>
 
           {/* Email — optional, email format validation (Req 23.5) */}
@@ -594,7 +565,10 @@ export default function UserManagementPage(): JSX.Element {
             name="email"
             label="邮箱 / Email"
             rules={[
-              { type: 'email', message: '请输入有效的邮箱地址 / Please enter a valid email address' },
+              {
+                type: 'email',
+                message: '请输入有效的邮箱地址 / Please enter a valid email address',
+              },
             ]}
           >
             <Input placeholder="Enter email (optional)" />
@@ -610,17 +584,11 @@ export default function UserManagementPage(): JSX.Element {
               { max: 128, message: '密码最多 128 个字符 / Max 128 characters' },
             ]}
           >
-            <Input.Password
-              placeholder="Enter initial password"
-              maxLength={128}
-            />
+            <Input.Password placeholder="Enter initial password" maxLength={128} />
           </Form.Item>
 
           {/* Roles — multi-select, admin / editor / viewer (Req 23.5) */}
-          <Form.Item
-            name="roles"
-            label="角色 / Roles"
-          >
+          <Form.Item name="roles" label="角色 / Roles">
             <Select
               mode="multiple"
               placeholder="Select roles (optional)"
@@ -649,11 +617,7 @@ export default function UserManagementPage(): JSX.Element {
           editForm.resetFields();
         }}
       >
-        <Form
-          form={editForm}
-          layout="vertical"
-          style={{ marginTop: 16 }}
-        >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           {/* BizError Alert — Req 23.7 */}
           {editError !== null && (
             <Form.Item style={{ marginBottom: 16 }}>
@@ -668,10 +632,7 @@ export default function UserManagementPage(): JSX.Element {
           )}
 
           {/* Username — disabled in edit mode (Req 23.6) */}
-          <Form.Item
-            name="username"
-            label="用户名 / Username"
-          >
+          <Form.Item name="username" label="用户名 / Username">
             <Input disabled />
           </Form.Item>
 
@@ -684,11 +645,7 @@ export default function UserManagementPage(): JSX.Element {
               { max: 64, message: '显示名最多 64 个字符 / Max 64 characters' },
             ]}
           >
-            <Input
-              placeholder="Enter display name"
-              maxLength={64}
-              showCount
-            />
+            <Input placeholder="Enter display name" maxLength={64} showCount />
           </Form.Item>
 
           {/* Email — optional, email format */}
@@ -696,7 +653,10 @@ export default function UserManagementPage(): JSX.Element {
             name="email"
             label="邮箱 / Email"
             rules={[
-              { type: 'email', message: '请输入有效的邮箱地址 / Please enter a valid email address' },
+              {
+                type: 'email',
+                message: '请输入有效的邮箱地址 / Please enter a valid email address',
+              },
             ]}
           >
             <Input placeholder="Enter email (optional)" />
@@ -705,10 +665,7 @@ export default function UserManagementPage(): JSX.Element {
           {/* Password field is NOT rendered in edit mode — Req 23.6 */}
 
           {/* Roles — multi-select */}
-          <Form.Item
-            name="roles"
-            label="角色 / Roles"
-          >
+          <Form.Item name="roles" label="角色 / Roles">
             <Select
               mode="multiple"
               placeholder="Select roles (optional)"

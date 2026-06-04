@@ -13,8 +13,8 @@
  */
 
 import { Button, Result } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export default function Forbidden403(): JSX.Element {
   const navigate = useNavigate();

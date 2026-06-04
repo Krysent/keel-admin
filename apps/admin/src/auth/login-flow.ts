@@ -38,8 +38,8 @@
  * navigation (it owns the router handle).
  */
 
-import type { MenuNode, Tenant, TokenPair, UserInfo } from '@keel/types';
 import type { TokenManager } from '@keel/http';
+import type { MenuNode, Tenant, TokenPair, UserInfo } from '@keel/types';
 
 /**
  * Credentials accepted by `/auth/login`. Kept as an open interface so
@@ -129,15 +129,11 @@ export interface LoginResult {
  * — task 4.5's "switching tenant rebuilds menus" lives in the
  * tenant-switch wiring (a different code path).
  */
-function pickInitialTenant(
-  user: UserInfo,
-  tenants: Tenant[] | null,
-): Tenant | null {
+function pickInitialTenant(user: UserInfo, tenants: Tenant[] | null): Tenant | null {
   if (!tenants || tenants.length === 0) return null;
   // Prefer a tenant the user is allowed to use; fall back to the first.
-  const owned = user.tenantIds.length > 0
-    ? tenants.find((t) => user.tenantIds.includes(t.id))
-    : undefined;
+  const owned =
+    user.tenantIds.length > 0 ? tenants.find((t) => user.tenantIds.includes(t.id)) : undefined;
   return owned ?? tenants[0] ?? null;
 }
 
@@ -171,9 +167,7 @@ export async function runHydrateAfterLogin(
   // either way — we promote them to a Set in the store anyway so
   // duplicates are harmless, but trimming early keeps the wire trace
   // honest.
-  const permissions = Array.from(
-    new Set(fetchedPermissions ?? user.permissions ?? []),
-  );
+  const permissions = Array.from(new Set(fetchedPermissions ?? user.permissions ?? []));
 
   // Tenants are best-effort: failure here should NOT block login (the
   // user can still see at least their default tenant's menu). We log

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createEventBus } from '../src/event-bus.js';
+import { createEventBus } from '../src/event-bus.ts';
 
 interface Events extends Record<string, unknown> {
   'auth:logout': void;

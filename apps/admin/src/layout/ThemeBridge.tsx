@@ -16,15 +16,15 @@
  * with the rest of the UI (Requirement 8.3).
  */
 
-import { useEffect, useMemo, type ReactNode } from 'react';
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/locale/zh_CN';
-import enUS from 'antd/locale/en_US';
-import type { Locale } from 'antd/es/locale';
-
 import { themeConfig, darkThemeConfig } from '@keel/theme';
+import { ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
+import { useEffect, useMemo, type ReactNode } from 'react';
 
 import { useAppStore } from '../stores/app.store';
+
+import type { Locale } from 'antd/es/locale';
 
 /**
  * Map our `LocaleCode` union to AntD's locale bundles.
@@ -49,10 +49,7 @@ export function ThemeBridge({ children }: ThemeBridgeProps): JSX.Element {
   // Memoize so ConfigProvider doesn't see a fresh object on every
   // re-render of the layout — it's stable identity that lets AntD's
   // internal `useMemo` short-circuit work.
-  const config = useMemo(
-    () => (theme === 'dark' ? darkThemeConfig : themeConfig),
-    [theme],
-  );
+  const config = useMemo(() => (theme === 'dark' ? darkThemeConfig : themeConfig), [theme]);
 
   // Mirror the active theme onto a `data-theme` attribute on <html> so
   // plain CSS (index.less) can target dark mode for surfaces AntD tokens

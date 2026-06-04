@@ -7,15 +7,14 @@
  * Validates: Requirements 4.1, 5.4
  */
 
-import type { MenuNode } from '@keel/types';
-
 import { http } from './http';
+
+import type { MenuNode } from '@keel/types';
 
 export const menuService = {
   /**
    * GET /user/menus — the menu forest for the currently authenticated user.
    * Filtered by backend based on the user's roles / tenant.
    */
-  fetchMenus: (): Promise<MenuNode[]> =>
-    http.get('/user/menus') as unknown as Promise<MenuNode[]>,
+  fetchMenus: (): Promise<MenuNode[]> => http.get('/user/menus') as unknown as Promise<MenuNode[]>,
 };

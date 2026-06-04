@@ -8,12 +8,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import { useTenantStore, INITIAL_TENANT_STATE } from '../../src/stores/tenant.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
 import type { Tenant } from '@keel/types';
-import { clearLocalStorage } from '../setup-local-storage.js';
-import {
-  useTenantStore,
-  INITIAL_TENANT_STATE,
-} from '../../src/stores/tenant.store.js';
 
 const T1: Tenant = { id: 't-1', name: 'Acme' };
 const T2: Tenant = { id: 't-2', name: 'Globex' };

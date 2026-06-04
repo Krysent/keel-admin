@@ -7,13 +7,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { MenuNode } from '@keel/types';
 
-import {
-  ancestorPaths,
-  buildMenuItems,
-  findMenuPath,
-} from '../../src/layout/lib/menu-tree.js';
+import { ancestorPaths, buildMenuItems, findMenuPath } from '../../src/layout/lib/menu-tree.ts';
+
+import type { MenuNode } from '@keel/types';
 
 const SYSTEM_TREE: MenuNode[] = [
   {
@@ -55,9 +52,7 @@ describe('buildMenuItems', () => {
   });
 
   it('drops empty children arrays so AntD treats the node as a leaf', () => {
-    const tree: MenuNode[] = [
-      { id: 'a', title: 'menu.a', path: '/a', children: [] },
-    ];
+    const tree: MenuNode[] = [{ id: 'a', title: 'menu.a', path: '/a', children: [] }];
     expect(buildMenuItems(tree)[0]?.children).toBeUndefined();
   });
 });
@@ -73,9 +68,7 @@ describe('findMenuPath', () => {
   });
 
   it('finds top-level paths in a single-element chain', () => {
-    expect(findMenuPath(SYSTEM_TREE, '/dashboard')?.map((n) => n.path)).toEqual([
-      '/dashboard',
-    ]);
+    expect(findMenuPath(SYSTEM_TREE, '/dashboard')?.map((n) => n.path)).toEqual(['/dashboard']);
   });
 });
 

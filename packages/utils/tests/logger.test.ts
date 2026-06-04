@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createLogger, type LogLevel } from '../src/logger.js';
+import { createLogger, type LogLevel } from '../src/logger.ts';
 
 function fakeSink() {
   return {

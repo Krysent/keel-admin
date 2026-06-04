@@ -13,17 +13,12 @@ export {
   type Storage,
   type StorageKind,
   type StorageLike,
-} from './storage.js';
+} from './storage.ts';
 
-export { createLogger, logger, type Logger, type LoggerOptions, type LogLevel } from './logger.js';
+export { createLogger, logger, type Logger, type LoggerOptions, type LogLevel } from './logger.ts';
 
-export {
-  createEventBus,
-  type EventBus,
-  type EventMap,
-  type Listener,
-} from './event-bus.js';
+export { createEventBus, type EventBus, type EventMap, type Listener } from './event-bus.ts';
 
-export { debounce, type DebouncedFunction } from './debounce.js';
+export { debounce, type DebouncedFunction } from './debounce.ts';
 
-export { stableHash, canonicalize } from './stable-hash.js';
+export { stableHash, canonicalize } from './stable-hash.ts';

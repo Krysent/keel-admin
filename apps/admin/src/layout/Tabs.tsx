@@ -21,19 +21,14 @@
  *     in React Router v6.
  */
 
-import { useEffect, useMemo } from 'react';
 import { Tabs as AntTabs } from 'antd';
-import {
-  useLocation,
-  useMatches,
-  useNavigate,
-} from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-
-import type { MenuNode } from '@keel/types';
+import { useLocation, useMatches, useNavigate } from 'react-router-dom';
 
 import { useAppStore } from '../stores/app.store';
 import { useUserStore } from '../stores/user.store';
+
 import {
   appendTab,
   collectAffixedTabs,
@@ -41,6 +36,8 @@ import {
   removeTab,
   tabFromMenuNode,
 } from './lib/tab-reconciler';
+
+import type { MenuNode } from '@keel/types';
 
 /**
  * Pull the deepest matched route's `handle.menu` (set by

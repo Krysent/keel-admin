@@ -18,10 +18,11 @@
  *          (developers cannot disable)
  */
 
-import { useMemo, type ReactElement } from 'react';
-import { Table, type TableProps } from 'antd';
 import { type PermissionContext } from '@keel/auth';
-import { filterColumnsByPermission, type KeelColumn } from './filter-columns.js';
+import { Table, type TableProps } from 'antd';
+import { useMemo, type ReactElement } from 'react';
+
+import { filterColumnsByPermission, type KeelColumn } from './filter-columns.ts';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -80,22 +81,12 @@ export interface KeelTableProps<T> extends Omit<TableProps<T>, 'columns' | 'virt
 export function KeelTable<T extends Record<string, unknown> = Record<string, unknown>>(
   props: KeelTableProps<T>,
 ): ReactElement {
-  const {
-    columns = [],
-    dataSource,
-    permissionContext,
-    pagination,
-    scroll,
-    ...rest
-  } = props;
+  const { columns = [], dataSource, permissionContext, pagination, scroll, ...rest } = props;
 
   // --- Column permission filtering (Requirement 10.2) ---
   const visibleColumns = useMemo(() => {
     if (!permissionContext) return columns;
-    return filterColumnsByPermission(
-      columns as KeelColumn[],
-      permissionContext,
-    );
+    return filterColumnsByPermission(columns as KeelColumn[], permissionContext);
   }, [columns, permissionContext]);
 
   // --- Forced virtual scrolling (Requirement 19.2) ---

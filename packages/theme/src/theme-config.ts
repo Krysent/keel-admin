@@ -16,8 +16,9 @@
  * package version.
  */
 import { theme as antdTheme, type ThemeConfig } from 'antd';
-import { tokens, darkTokens } from './tokens.js';
-import { componentOverrides } from './components.js';
+
+import { componentOverrides } from './components.ts';
+import { tokens, darkTokens } from './tokens.ts';
 
 export const themeConfig: ThemeConfig = {
   token: tokens,

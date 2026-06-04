@@ -12,7 +12,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { MenuNode, TabItem } from '@keel/types';
 
 import {
   appendTab,
@@ -20,7 +19,9 @@ import {
   pickActiveAfterClose,
   removeTab,
   tabFromMenuNode,
-} from '../../src/layout/lib/tab-reconciler.js';
+} from '../../src/layout/lib/tab-reconciler.ts';
+
+import type { MenuNode, TabItem } from '@keel/types';
 
 const HOME: TabItem = { key: '/home', title: 'menu.home', path: '/home', affix: true };
 const USER: TabItem = { key: '/system/user', title: 'menu.user', path: '/system/user' };
@@ -131,9 +132,7 @@ describe('collectAffixedTabs', () => {
         id: '1',
         title: 'menu.system',
         path: '/system',
-        children: [
-          { id: '2', title: 'menu.user', path: '/system/user', affix: true },
-        ],
+        children: [{ id: '2', title: 'menu.user', path: '/system/user', affix: true }],
       },
     ];
     expect(collectAffixedTabs(menus).map((t) => t.key)).toEqual(['/system/user']);

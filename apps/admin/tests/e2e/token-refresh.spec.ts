@@ -30,7 +30,7 @@ test.describe('Token Auto-Refresh', () => {
     let retryAttempted = false;
 
     // Intercept API requests to simulate a 401 followed by token refresh
-    await page.route('**/api/users*', async (route, request) => {
+    await page.route('**/api/users*', async (route, _request) => {
       if (!retryAttempted) {
         // First request: simulate 401 (token expired)
         retryAttempted = true;

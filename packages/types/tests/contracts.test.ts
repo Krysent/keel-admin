@@ -14,7 +14,7 @@ import type {
   ThemeMode,
   TokenPair,
   UserInfo,
-} from '../src/index.js';
+} from '../src/index.ts';
 
 /**
  * These tests don't *do* anything at runtime — they simply assert at the type

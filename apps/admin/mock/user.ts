@@ -4,9 +4,9 @@
  * Validates: Requirements 11.1, 11.3, 11.4
  */
 
-import type { MockMethod } from 'vite-plugin-mock';
+import { wrap, wrapPage } from './_utils';
 
-import { wrap, wrapError, wrapPage } from './_utils';
+import type { MockMethod } from 'vite-plugin-mock';
 
 const mockUsers = [
   {
@@ -17,8 +17,15 @@ const mockUsers = [
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
     tenantIds: ['tenant-1', 'tenant-2'],
     permissions: [
-      'user:list', 'user:create', 'user:update', 'user:delete',
-      'order:list', 'order:create', 'order:update', 'order:delete', 'order:export',
+      'user:list',
+      'user:create',
+      'user:update',
+      'user:delete',
+      'order:list',
+      'order:create',
+      'order:update',
+      'order:delete',
+      'order:export',
       'tenant:switch',
     ],
     roles: ['admin'],
@@ -73,7 +80,11 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/users',
     method: 'get',
-    response: ({ query }: { query: { page?: string; pageSize?: string; keyword?: string; status?: string } }) => {
+    response: ({
+      query,
+    }: {
+      query: { page?: string; pageSize?: string; keyword?: string; status?: string };
+    }) => {
       const page = Number(query.page) || 1;
       const pageSize = Number(query.pageSize) || 10;
       const keyword = query.keyword?.toLowerCase() ?? '';
@@ -110,7 +121,17 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/users',
     method: 'post',
-    response: ({ body }: { body: { username: string; displayName: string; email?: string; password: string; roles?: string[] } }) => {
+    response: ({
+      body,
+    }: {
+      body: {
+        username: string;
+        displayName: string;
+        email?: string;
+        password: string;
+        roles?: string[];
+      };
+    }) => {
       const newUser = {
         id: String(mockUsers.length + 1),
         username: body.username,
@@ -127,7 +148,13 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/users/:id',
     method: 'put',
-    response: ({ body, query }: { body: { displayName?: string; email?: string; avatar?: string; roles?: string[] }; query: { id?: string } }) => {
+    response: ({
+      body,
+      query,
+    }: {
+      body: { displayName?: string; email?: string; avatar?: string; roles?: string[] };
+      query: { id?: string };
+    }) => {
       // In vite-plugin-mock, route params (e.g. :id) are surfaced via `query`
       const targetId = query.id;
       const user = mockUsers.find((u) => u.id === targetId) ?? mockUsers[0]!;

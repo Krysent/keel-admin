@@ -45,8 +45,9 @@
  * resetting stores (Requirement 17.2).
  */
 
-import type { TokenPair } from '@keel/types';
 import { createStorage, type Storage, type StorageKind } from '@keel/utils';
+
+import type { TokenPair } from '@keel/types';
 
 /** Function the consumer provides to perform the actual refresh round-trip. */
 export type RefreshFn = (refreshToken: string) => Promise<TokenPair>;
@@ -129,8 +130,7 @@ export class NoRefreshTokenError extends Error {
 }
 
 export function createTokenManager(options: TokenManagerOptions): TokenManager {
-  const storage =
-    options.storage ?? createStorage(options.storageKind ?? 'local');
+  const storage = options.storage ?? createStorage(options.storageKind ?? 'local');
   const storageKey = options.storageKey ?? DEFAULT_KEY;
   const onAuthExpired = options.onAuthExpired;
 

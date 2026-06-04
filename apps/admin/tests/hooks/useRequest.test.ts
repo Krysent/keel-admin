@@ -6,9 +6,10 @@
  *   stale-while-revalidate 缓存，切回时优先显示缓存
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useRequest, clearRequestCache } from '../../src/hooks/useRequest.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { useRequest, clearRequestCache } from '../../src/hooks/useRequest.ts';
 
 beforeEach(() => {
   clearRequestCache();
@@ -18,9 +19,7 @@ describe('useRequest — basic fetching', () => {
   it('returns data from fetchFn on mount', async () => {
     const fetchFn = vi.fn().mockResolvedValue({ name: 'Alice' });
 
-    const { result } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-basic' }),
-    );
+    const { result } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-basic' }));
 
     expect(result.current.loading).toBe(true);
 
@@ -36,9 +35,7 @@ describe('useRequest — basic fetching', () => {
   it('sets error on fetch failure while keeping stale data', async () => {
     const fetchFn = vi.fn().mockRejectedValue(new Error('network error'));
 
-    const { result } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-error' }),
-    );
+    const { result } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-error' }));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -92,9 +89,7 @@ describe('useRequest — stale-while-revalidate', () => {
     });
 
     // First mount — populates cache
-    const { result, unmount } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-swr' }),
-    );
+    const { result, unmount } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-swr' }));
 
     await waitFor(() => {
       expect(result.current.data).toBe('response-1');
@@ -103,9 +98,7 @@ describe('useRequest — stale-while-revalidate', () => {
     unmount();
 
     // Second mount — should serve cached data immediately
-    const { result: result2 } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-swr' }),
-    );
+    const { result: result2 } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-swr' }));
 
     // Immediately has cached data (stale)
     expect(result2.current.data).toBe('response-1');
@@ -125,9 +118,7 @@ describe('useRequest — stale-while-revalidate', () => {
       return `v${callCount}`;
     });
 
-    const { result } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-refresh' }),
-    );
+    const { result } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-refresh' }));
 
     await waitFor(() => {
       expect(result.current.data).toBe('v1');
@@ -147,9 +138,7 @@ describe('useRequest — stale-while-revalidate', () => {
   it('mutate() updates data and cache without a fetch', async () => {
     const fetchFn = vi.fn().mockResolvedValue('original');
 
-    const { result } = renderHook(() =>
-      useRequest({ fetchFn, cacheKey: 'test-mutate' }),
-    );
+    const { result } = renderHook(() => useRequest({ fetchFn, cacheKey: 'test-mutate' }));
 
     await waitFor(() => {
       expect(result.current.data).toBe('original');
@@ -167,9 +156,9 @@ describe('useRequest — stale-while-revalidate', () => {
 
 describe('useRequest — params handling', () => {
   it('re-fetches when params change', async () => {
-    const fetchFn = vi.fn().mockImplementation(
-      async (params: { id: number }) => `item-${params.id}`,
-    );
+    const fetchFn = vi
+      .fn()
+      .mockImplementation(async (params: { id: number }) => `item-${params.id}`);
 
     const { result, rerender } = renderHook(
       ({ id }) =>
@@ -196,15 +185,17 @@ describe('useRequest — params handling', () => {
 
   it('uses separate cache entries for different params', async () => {
     let callCount = 0;
-    const fetchFn = vi.fn().mockImplementation(
-      async (params: { id: number }) => {
-        callCount++;
-        return `item-${params.id}-call-${callCount}`;
-      },
-    );
+    const fetchFn = vi.fn().mockImplementation(async (params: { id: number }) => {
+      callCount++;
+      return `item-${params.id}-call-${callCount}`;
+    });
 
     // Fetch id=1
-    const { result, rerender, unmount } = renderHook(
+    const {
+      result,
+      rerender,
+      unmount: _unmount,
+    } = renderHook(
       ({ id }) =>
         useRequest({
           fetchFn,

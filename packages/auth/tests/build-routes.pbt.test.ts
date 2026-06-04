@@ -29,14 +29,14 @@
  * we stay in node, no jsdom, no testing-library.
  */
 
-import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { Navigate, type RouteObject } from 'react-router-dom';
-import type { ReactElement } from 'react';
+import { describe, expect, it } from 'vitest';
+
+import { buildRoutes, STATIC_FALLBACK_PATHS } from '../src/index.ts';
 
 import type { MenuNode } from '@keel/types';
-
-import { buildRoutes, STATIC_FALLBACK_PATHS } from '../src/index.js';
+import type { ReactElement } from 'react';
 
 // ---------------------------------------------------------------------------
 //   Generators
@@ -82,10 +82,9 @@ const nameArb = fc.string({ maxLength: 4 });
  * because empty" path AND the "passes because hit" path AND the
  * "filtered because miss" path.
  */
-const permissionCodesArb = fc.option(
-  fc.array(codeArb, { minLength: 0, maxLength: 3 }),
-  { nil: undefined },
-);
+const permissionCodesArb = fc.option(fc.array(codeArb, { minLength: 0, maxLength: 3 }), {
+  nil: undefined,
+});
 
 /**
  * Recursive menu-node generator using `fc.letrec` with a depth bound
@@ -143,8 +142,7 @@ function menuNodeArb(depth: number): fc.Arbitrary<MenuNode> {
       if (raw.redirect !== undefined) node.redirect = raw.redirect;
       if (raw.hidden !== undefined) node.hidden = raw.hidden;
       if (raw.component !== undefined) node.component = raw.component;
-      if (raw.permissionCodes !== undefined)
-        node.permissionCodes = raw.permissionCodes;
+      if (raw.permissionCodes !== undefined) node.permissionCodes = raw.permissionCodes;
       if (raw.children !== undefined) node.children = raw.children;
       return node;
     });
@@ -153,9 +151,7 @@ function menuNodeArb(depth: number): fc.Arbitrary<MenuNode> {
 const forestArb = fc.array(menuNodeArb(MAX_DEPTH), { maxLength: 4 });
 
 /** Permission set the user holds. Bounded for shrink readability. */
-const permsArb = fc
-  .uniqueArray(codeArb, { minLength: 0, maxLength: 6 })
-  .map((arr) => new Set(arr));
+const permsArb = fc.uniqueArray(codeArb, { minLength: 0, maxLength: 6 }).map((arr) => new Set(arr));
 
 // ---------------------------------------------------------------------------
 //   Helpers
@@ -225,11 +221,8 @@ type StructuralRoute = {
 function structuralOf(route: RouteObject): StructuralRoute {
   const menu = menuOf(route);
   const el = route.element as ReactElement | null | undefined;
-  const isNavigate =
-    el !== null && el !== undefined && el.type === Navigate;
-  const redirectTo = isNavigate
-    ? ((el!.props as { to?: string }).to ?? undefined)
-    : undefined;
+  const isNavigate = el !== null && el !== undefined && el.type === Navigate;
+  const redirectTo = isNavigate ? ((el!.props as { to?: string }).to ?? undefined) : undefined;
 
   const out: StructuralRoute = {
     path: route.path,

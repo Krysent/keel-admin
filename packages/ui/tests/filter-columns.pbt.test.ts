@@ -41,15 +41,11 @@
  *                       held codes. Bounded for shrink readability.
  */
 
-import { describe, expect, it } from 'vitest';
-import fc from 'fast-check';
-
 import { evaluatePermission, type PermissionContext } from '@keel/auth';
+import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
 
-import {
-  filterColumnsByPermission,
-  type KeelColumn,
-} from '../src/index.js';
+import { filterColumnsByPermission, type KeelColumn } from '../src/index.ts';
 
 // ---------------------------------------------------------------------------
 //   Generators
@@ -117,9 +113,7 @@ const columnArb: fc.Arbitrary<TestColumn> = fc
 const columnsArb = fc.array(columnArb, { maxLength: 8 });
 
 /** Permission set the user holds. Bounded for shrink readability. */
-const permsArb = fc
-  .uniqueArray(codeArb, { minLength: 0, maxLength: 6 })
-  .map((arr) => new Set(arr));
+const permsArb = fc.uniqueArray(codeArb, { minLength: 0, maxLength: 6 }).map((arr) => new Set(arr));
 
 /** A `PermissionContext` built from a permission set. No predicate. */
 function ctxOf(perms: Set<string>): PermissionContext {
@@ -136,14 +130,12 @@ function ctxOf(perms: Set<string>): PermissionContext {
  * example inside the precondition — no shrink budget is wasted on
  * non-subset rejections.
  */
-const subsetPermsArb = fc
-  .uniqueArray(codeArb, { minLength: 0, maxLength: 6 })
-  .chain((universe) =>
-    fc.tuple(
-      fc.subarray(universe).map((arr) => new Set(arr)), // P1
-      fc.constant(new Set(universe)), // P2
-    ),
-  );
+const subsetPermsArb = fc.uniqueArray(codeArb, { minLength: 0, maxLength: 6 }).chain((universe) =>
+  fc.tuple(
+    fc.subarray(universe).map((arr) => new Set(arr)), // P1
+    fc.constant(new Set(universe)), // P2
+  ),
+);
 
 // ---------------------------------------------------------------------------
 //   Property 1 — `permission === undefined` always renders
@@ -231,9 +223,7 @@ describe('filterColumnsByPermission: column kept iff permission is undefined or 
         // permission semantics — see filter-columns.ts).
         const expectedIds = new Set<number>();
         for (const c of cols) {
-          const passes =
-            c.permission === undefined ||
-            evaluatePermission(ctx, c.permission);
+          const passes = c.permission === undefined || evaluatePermission(ctx, c.permission);
           if (passes) expectedIds.add(c.__id);
         }
 
@@ -332,12 +322,8 @@ describe('filterColumnsByPermission: monotonicity in the permission set (task 8.
         // if `subsetPermsArb` ever drifts).
         for (const x of p1) expect(p2.has(x)).toBe(true);
 
-        const survivors1 = new Set(
-          filterColumnsByPermission(cols, ctxOf(p1)),
-        );
-        const survivors2 = new Set(
-          filterColumnsByPermission(cols, ctxOf(p2)),
-        );
+        const survivors1 = new Set(filterColumnsByPermission(cols, ctxOf(p1)));
+        const survivors2 = new Set(filterColumnsByPermission(cols, ctxOf(p2)));
 
         for (const c of survivors1) {
           expect(survivors2.has(c)).toBe(true);

@@ -14,7 +14,7 @@ import {
   createLazyPageResolver,
   lookupPagePath,
   type PageModulesMap,
-} from '../../src/pages/_async.js';
+} from '../../src/pages/_async.ts';
 
 describe('candidatePathsFor', () => {
   it('produces the two recognised forms for a bare key', () => {
@@ -41,9 +41,7 @@ describe('lookupPagePath', () => {
   };
 
   it('matches the index form when only that file exists', () => {
-    expect(lookupPagePath(dummy, 'system/user')).toBe(
-      '/src/pages/system/user/index.tsx',
-    );
+    expect(lookupPagePath(dummy, 'system/user')).toBe('/src/pages/system/user/index.tsx');
   });
 
   it('matches the exact-file form when only that file exists', () => {
@@ -72,9 +70,7 @@ describe('createLazyPageResolver', () => {
   });
 
   it('caches the lazy component per key (no duplicate import on second resolve)', () => {
-    const loader = vi.fn(() =>
-      Promise.resolve({ default: () => null as unknown as JSX.Element }),
-    );
+    const loader = vi.fn(() => Promise.resolve({ default: () => null as unknown as JSX.Element }));
     const modules: PageModulesMap = {
       '/src/pages/sample/index.tsx': loader,
     };

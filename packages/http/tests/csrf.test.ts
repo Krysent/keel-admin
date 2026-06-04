@@ -8,14 +8,11 @@
  * Uses the same inspecting-adapter pattern as headers.test.ts.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import type {
-  AxiosAdapter,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import { describe, it, expect, afterEach } from 'vitest';
 
-import { createHttp, createTokenManager, type RefreshFn } from '../src/index.js';
+import { createHttp, createTokenManager, type RefreshFn } from '../src/index.ts';
+
+import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 const noopRefresh: RefreshFn = async () => ({
   accessToken: 'never',
@@ -35,11 +32,7 @@ function readHeader(
   return typeof direct === 'string' ? direct : undefined;
 }
 
-function makeClient(options: {
-  csrf?: boolean;
-  csrfCookieName?: string;
-  csrfHeaderName?: string;
-}) {
+function makeClient(options: { csrf?: boolean; csrfCookieName?: string; csrfHeaderName?: string }) {
   const seen: InternalAxiosRequestConfig[] = [];
 
   const adapter: AxiosAdapter = async (config) => {
@@ -71,7 +64,8 @@ function makeClient(options: {
 }
 
 // Store original document.cookie descriptor so we can restore it
-const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis.document ?? {}, 'cookie') ??
+const originalDescriptor =
+  Object.getOwnPropertyDescriptor(globalThis.document ?? {}, 'cookie') ??
   Object.getOwnPropertyDescriptor(Object.getPrototypeOf(globalThis.document ?? {}), 'cookie');
 
 describe('CSRF token injection (Requirement 18.3)', () => {

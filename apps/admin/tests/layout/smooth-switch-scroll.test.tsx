@@ -5,19 +5,19 @@
  * Validates: Requirements 22.11, 22.12, 22.14
  */
 
-import React from 'react';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, act, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
 import i18next from 'i18next';
+import React from 'react';
+import { I18nextProvider } from 'react-i18next';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-import { useAppStore } from '../../src/stores/app.store.js';
-import { useUserStore } from '../../src/stores/user.store.js';
-import { useTenantStore } from '../../src/stores/tenant.store.js';
-import { LocaleBridge } from '../../src/layout/LocaleBridge.js';
-import { ThemeBridge } from '../../src/layout/ThemeBridge.js';
+import { LocaleBridge } from '../../src/layout/LocaleBridge.ts';
+import { ThemeBridge } from '../../src/layout/ThemeBridge.ts';
+import { useAppStore } from '../../src/stores/app.store.ts';
+import { useTenantStore } from '../../src/stores/tenant.store.ts';
+import { useUserStore } from '../../src/stores/user.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
 
 // ---------------------------------------------------------------------------
 // i18next test instance
@@ -59,9 +59,13 @@ type ResizeCallback = (entries: ResizeObserverEntry[]) => void;
 let _observerCallback: ResizeCallback | null = null;
 
 class MockResizeObserver {
-  constructor(cb: ResizeCallback) { _observerCallback = cb; }
+  constructor(cb: ResizeCallback) {
+    _observerCallback = cb;
+  }
   observe() {}
-  disconnect() { _observerCallback = null; }
+  disconnect() {
+    _observerCallback = null;
+  }
   unobserve() {}
 }
 
@@ -78,7 +82,12 @@ function installReloadTracker(): () => number {
   Object.defineProperty(window, 'location', {
     writable: true,
     configurable: true,
-    value: { ...window.location, reload: () => { _reloadCallCount += 1; } },
+    value: {
+      ...window.location,
+      reload: () => {
+        _reloadCallCount += 1;
+      },
+    },
   });
   return () => _reloadCallCount;
 }
@@ -103,7 +112,9 @@ beforeEach(() => {
   _observerCallback = null;
   _reloadCallCount = 0;
   Object.defineProperty(window, 'innerWidth', {
-    value: 1280, writable: true, configurable: true,
+    value: 1280,
+    writable: true,
+    configurable: true,
   });
   vi.stubGlobal('ResizeObserver', MockResizeObserver);
 });
@@ -165,7 +176,9 @@ describe('Req 22.11 — Language switching (store + LocaleBridge)', () => {
 
     render(
       <I18nextProvider i18n={testI18n}>
-        <LocaleBridge><div /></LocaleBridge>
+        <LocaleBridge>
+          <div />
+        </LocaleBridge>
       </I18nextProvider>,
     );
 
@@ -228,8 +241,12 @@ describe('Req 22.12 — Theme switching (ThemeBridge): no page reload', () => {
       </I18nextProvider>,
     );
 
-    await act(async () => { useAppStore.getState().setTheme('dark'); });
-    await act(async () => { useAppStore.getState().setTheme('light'); });
+    await act(async () => {
+      useAppStore.getState().setTheme('dark');
+    });
+    await act(async () => {
+      useAppStore.getState().setTheme('light');
+    });
 
     expect(getCallCount()).toBe(0);
   });
@@ -237,7 +254,9 @@ describe('Req 22.12 — Theme switching (ThemeBridge): no page reload', () => {
   it('ThemeBridge child stays mounted across theme changes (no remount)', async () => {
     let mountCount = 0;
     function TrackedChild(): JSX.Element {
-      React.useEffect(() => { mountCount += 1; }, []);
+      React.useEffect(() => {
+        mountCount += 1;
+      }, []);
       return <div data-testid="tracked">tracked</div>;
     }
 
@@ -253,8 +272,12 @@ describe('Req 22.12 — Theme switching (ThemeBridge): no page reload', () => {
 
     expect(mountCount).toBe(1);
 
-    await act(async () => { useAppStore.getState().setTheme('dark'); });
-    await act(async () => { useAppStore.getState().setTheme('light'); });
+    await act(async () => {
+      useAppStore.getState().setTheme('dark');
+    });
+    await act(async () => {
+      useAppStore.getState().setTheme('light');
+    });
 
     // Still 1 — no remount triggered by theme change.
     expect(mountCount).toBe(1);
@@ -294,10 +317,7 @@ describe('Req 22.14 — BasicLayout sticky positioning and scroll CSS', () => {
             data-testid="header"
             style={{ position: 'sticky', top: 0, zIndex: 10, flexShrink: 0 }}
           />
-          <main
-            data-testid="content"
-            style={{ overflow: 'auto', flexGrow: 1, minHeight: 0 }}
-          />
+          <main data-testid="content" style={{ overflow: 'auto', flexGrow: 1, minHeight: 0 }} />
         </div>
       </div>
     );
@@ -350,7 +370,7 @@ describe('Req 22.14 — BasicLayout sticky positioning and scroll CSS', () => {
 
 describe('Req 22.14 — Header accepts sticky style prop', () => {
   it('Header renders data-testid and accepts position:sticky style prop', async () => {
-    const { Header } = await import('../../src/layout/Header.js');
+    const { Header } = await import('../../src/layout/Header.ts');
 
     render(
       <I18nextProvider i18n={testI18n}>
@@ -369,7 +389,7 @@ describe('Req 22.14 — Header accepts sticky style prop', () => {
   });
 
   it('Header without style prop does not have sticky position', async () => {
-    const { Header } = await import('../../src/layout/Header.js');
+    const { Header } = await import('../../src/layout/Header.ts');
 
     render(
       <I18nextProvider i18n={testI18n}>
@@ -392,7 +412,7 @@ describe('Req 22.14 — Header accepts sticky style prop', () => {
 
 describe('Req 22.14 — BasicLayout module integrity', () => {
   it('BasicLayout is exported as a function component', async () => {
-    const mod = await import('../../src/layout/BasicLayout.js');
+    const mod = await import('../../src/layout/BasicLayout.ts');
     expect(typeof mod.BasicLayout).toBe('function');
   });
 });

@@ -38,16 +38,12 @@
  * same tests should pass without modification.
  */
 
-import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import type { AxiosAdapter, AxiosResponse } from 'axios';
+import { describe, expect, it } from 'vitest';
 
-import {
-  BizError,
-  createHttp,
-  createTokenManager,
-  type RefreshFn,
-} from '../src/index.js';
+import { BizError, createHttp, createTokenManager, type RefreshFn } from '../src/index.ts';
+
+import type { AxiosAdapter, AxiosResponse } from 'axios';
 
 /** Envelope shape used by `@keel/types` (`ApiEnvelope`). */
 interface Envelope {

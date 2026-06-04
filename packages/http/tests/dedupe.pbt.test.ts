@@ -46,14 +46,14 @@
  * and no duplicates would ever be detected.
  */
 
-import { describe, expect, it } from 'vitest';
-import fc from 'fast-check';
 import axios, {
   AxiosError,
   type AxiosAdapter,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios';
+import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
 
 import {
   createHttp,
@@ -61,7 +61,7 @@ import {
   DEDUPE_HANDLE_KEY,
   type DedupeHandle,
   type RefreshFn,
-} from '../src/index.js';
+} from '../src/index.ts';
 
 // ---------------------------------------------------------------------------
 //   Test scaffolding
@@ -176,8 +176,7 @@ function makeClientWithDeferredPool() {
         // free, so a plain `Error` here would leak the fingerprint
         // (NOT a bug in dedupe — a fidelity gap in the test adapter).
         // We rewrap rejections as `AxiosError` to match production.
-        const message =
-          rawError instanceof Error ? rawError.message : String(rawError);
+        const message = rawError instanceof Error ? rawError.message : String(rawError);
         throw new AxiosError(message, AxiosError.ERR_BAD_RESPONSE, config);
       },
     );
@@ -198,9 +197,7 @@ function makeClientWithDeferredPool() {
   // property (DEDUPE_HANDLE_KEY === '__keelDedupe'). We cast through
   // Record because the augmentation is intentionally not on the public
   // AxiosInstance type — it's an internal debug surface.
-  const handle = (http as unknown as Record<string, DedupeHandle>)[
-    DEDUPE_HANDLE_KEY
-  ];
+  const handle = (http as unknown as Record<string, DedupeHandle>)[DEDUPE_HANDLE_KEY];
   if (handle === undefined) {
     throw new Error('dedupe handle was not installed on the Axios instance');
   }
@@ -314,10 +311,7 @@ describe('Dedupe interceptor (PBT)', () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             entry!.def.resolve(
               // Config will be re-attached by the adapter wrapper.
-              makeOkEnvelopeResponse(
-                {} as InternalAxiosRequestConfig,
-                { key },
-              ),
+              makeOkEnvelopeResponse({} as InternalAxiosRequestConfig, { key }),
             );
           }
 
@@ -387,12 +381,7 @@ describe('Dedupe interceptor (PBT)', () => {
 
           if (succeed) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            entry!.def.resolve(
-              makeOkEnvelopeResponse(
-                {} as InternalAxiosRequestConfig,
-                { key },
-              ),
-            );
+            entry!.def.resolve(makeOkEnvelopeResponse({} as InternalAxiosRequestConfig, { key }));
           } else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             entry!.def.reject(new Error('network blew up'));
@@ -478,10 +467,7 @@ describe('Dedupe interceptor (PBT)', () => {
           if (spec.succeed) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             entry!.def.resolve(
-              makeOkEnvelopeResponse(
-                {} as InternalAxiosRequestConfig,
-                { key: spec.key },
-              ),
+              makeOkEnvelopeResponse({} as InternalAxiosRequestConfig, { key: spec.key }),
             );
           } else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -545,12 +531,7 @@ describe('Dedupe interceptor (PBT)', () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           expect(entry!.hits).toBe(duplicates);
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          entry!.def.resolve(
-            makeOkEnvelopeResponse(
-              {} as InternalAxiosRequestConfig,
-              { key },
-            ),
-          );
+          entry!.def.resolve(makeOkEnvelopeResponse({} as InternalAxiosRequestConfig, { key }));
 
           const settled = await Promise.all(callers);
           for (const r of settled) {

@@ -1,10 +1,6 @@
 import i18next, { type i18n as I18nInstance } from 'i18next';
 
-import type {
-  CreateI18nOptions,
-  I18nBackend,
-  KeelI18n,
-} from './types.js';
+import type { CreateI18nOptions, I18nBackend, KeelI18n } from './types.ts';
 
 /**
  * Default detection order per Requirement 8.1: query > localStorage > navigator.
@@ -39,9 +35,7 @@ function toArray(ns: string | readonly string[]): string[] {
  * up. Leaving `read` as a thin pass-through keeps the test seam simple
  * (callers can hand us a `vi.fn()` directly).
  */
-function asI18nextBackendModule(
-  backend: I18nBackend,
-): {
+function asI18nextBackendModule(backend: I18nBackend): {
   type: 'backend';
   read: I18nBackend['read'];
 } {
@@ -72,9 +66,7 @@ function asI18nextBackendModule(
  * completed, so callers can `await createI18n(...)` and immediately
  * trust `t(...)` for preloaded namespaces.
  */
-export async function createI18n(
-  options: CreateI18nOptions,
-): Promise<KeelI18n> {
+export async function createI18n(options: CreateI18nOptions): Promise<KeelI18n> {
   const preload =
     options.preloadNamespaces && options.preloadNamespaces.length > 0
       ? [...options.preloadNamespaces]
@@ -135,9 +127,7 @@ export async function createI18n(
   // preloaded set because i18next has already loaded them as part of init.
   const loaded = new Set<string>(preload);
 
-  const loadNamespaces = async (
-    namespaces: string | readonly string[],
-  ): Promise<void> => {
+  const loadNamespaces = async (namespaces: string | readonly string[]): Promise<void> => {
     const requested = toArray(namespaces);
     const fresh = requested.filter((ns) => !loaded.has(ns));
     if (fresh.length === 0) {

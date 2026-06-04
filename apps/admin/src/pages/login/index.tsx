@@ -26,19 +26,11 @@
  * `auth` namespace bundle.
  */
 
-import { useState, useEffect } from 'react';
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Typography,
-} from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Alert, Button, Card, Checkbox, Form, Input, Typography } from 'antd';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { runLoginFlow, useLoginDeps } from '../../auth/index';
 
@@ -133,10 +125,7 @@ function BrandLogoSVG(): JSX.Element {
       {/* Outer rounded square */}
       <rect width="48" height="48" rx="12" fill="#0A84FF" />
       {/* Letter "K" shape */}
-      <path
-        d="M14 12H19V22L28 12H34L24 23L34 36H28L19 25V36H14V12Z"
-        fill="white"
-      />
+      <path d="M14 12H19V22L28 12H34L24 23L34 36H28L19 25V36H14V12Z" fill="white" />
     </svg>
   );
 }
@@ -172,10 +161,7 @@ interface LoginFormValues {
  * - the latter currently defaults to `/`; the bootstrap layer can
  *   refine it once the menu is hydrated
  */
-function pickRedirect(
-  searchParam: string | null,
-  flowRedirect: string,
-): string {
+function pickRedirect(searchParam: string | null, flowRedirect: string): string {
   if (!searchParam) return flowRedirect;
   // Reject absolute URLs as a defence-in-depth against open-redirect
   // payloads in the query string. Only accept relative paths.
@@ -201,7 +187,7 @@ export default function LoginPage(): JSX.Element {
     if (remembered !== null) {
       form.setFieldsValue({ username: remembered, remember: true });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onFinish = async (values: LoginFormValues): Promise<void> => {
@@ -226,10 +212,7 @@ export default function LoginPage(): JSX.Element {
         clearRememberedUsername();
       }
 
-      const redirect = pickRedirect(
-        searchParams.get('redirect'),
-        result.redirectTo,
-      );
+      const redirect = pickRedirect(searchParams.get('redirect'), result.redirectTo);
       // `replace` so the login page is removed from the back stack —
       // pressing "back" after authenticating should not bring the user
       // back to the form.
@@ -242,8 +225,7 @@ export default function LoginPage(): JSX.Element {
       const fallback = t('auth.login.error', {
         defaultValue: 'Login failed. Please check your credentials.',
       });
-      const text =
-        err instanceof Error && err.message ? err.message : fallback;
+      const text = err instanceof Error && err.message ? err.message : fallback;
       // Show inline Alert instead of toast (Requirement 21.5)
       setLoginError(text);
     } finally {
@@ -261,8 +243,7 @@ export default function LoginPage(): JSX.Element {
         justifyContent: 'center',
         // Subtle wash so the card's frosted-glass styling reads.
         // Requirement 21.7: linear-gradient(135deg, rgba(10,132,255,0.08), rgba(94,200,250,0.06))
-        background:
-          'linear-gradient(135deg, rgba(10,132,255,0.08), rgba(94,200,250,0.06))',
+        background: 'linear-gradient(135deg, rgba(10,132,255,0.08), rgba(94,200,250,0.06))',
         padding: 16,
         boxSizing: 'border-box',
       }}
@@ -282,8 +263,7 @@ export default function LoginPage(): JSX.Element {
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           // Subtle card background so the glass effect is visible
           background: 'rgba(255, 255, 255, 0.72)',
-          boxShadow:
-            '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.6) inset',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.6) inset',
         }}
       >
         {/* Requirement 21.1: Brand Logo area — height 80px, SVG icon 48px, "Keel Admin" text, horizontally centred */}
@@ -388,11 +368,7 @@ export default function LoginPage(): JSX.Element {
            * checkbox, ensuring the tap area is sufficient on mobile.
            * marginBottom: 8 ensures ≥ 8px vertical spacing above the button row.
            */}
-          <Form.Item
-            name="remember"
-            valuePropName="checked"
-            style={{ marginBottom: 8 }}
-          >
+          <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: 8 }}>
             <div
               style={{
                 minHeight: 44,
@@ -400,9 +376,7 @@ export default function LoginPage(): JSX.Element {
                 alignItems: 'center',
               }}
             >
-              <Checkbox>
-                {t('auth.login.remember', { defaultValue: 'Remember me' })}
-              </Checkbox>
+              <Checkbox>{t('auth.login.remember', { defaultValue: 'Remember me' })}</Checkbox>
             </div>
           </Form.Item>
 

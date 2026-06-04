@@ -20,4 +20,4 @@ export {
   VIRTUAL_SCROLL_THRESHOLD,
   type KeelTableProps,
   type KeelTableColumnType,
-} from './keel-table/index.js';
+} from './keel-table/index.ts';

@@ -13,7 +13,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { VIRTUAL_SCROLL_THRESHOLD } from '../src/keel-table/KeelTable.js';
+
+import { VIRTUAL_SCROLL_THRESHOLD } from '../src/keel-table/KeelTable.ts';
 
 describe('KeelTable — virtual scrolling constants', () => {
   it('VIRTUAL_SCROLL_THRESHOLD is 200', () => {

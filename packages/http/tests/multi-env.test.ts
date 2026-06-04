@@ -46,14 +46,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { AxiosAdapter, AxiosResponse } from 'axios';
 
 import {
   createHttp,
   createTokenManager,
   type HttpFactoryOptions,
   type RefreshFn,
-} from '../src/index.js';
+} from '../src/index.ts';
+
+import type { AxiosAdapter, AxiosResponse } from 'axios';
 
 /** Minimal subset of `import.meta.env` we read in the bootstrap path. */
 interface KeelEnv {
@@ -104,12 +105,8 @@ function buildClientFromEnv(env: KeelEnv) {
   const options: HttpFactoryOptions = {
     baseURL: env.VITE_API_BASE_URL,
     tokenManager,
-    ...(env.VITE_API_TIMEOUT !== undefined
-      ? { timeout: Number(env.VITE_API_TIMEOUT) }
-      : {}),
-    ...(env.VITE_TENANT_HEADER !== undefined
-      ? { tenantHeader: env.VITE_TENANT_HEADER }
-      : {}),
+    ...(env.VITE_API_TIMEOUT !== undefined ? { timeout: Number(env.VITE_API_TIMEOUT) } : {}),
+    ...(env.VITE_TENANT_HEADER !== undefined ? { tenantHeader: env.VITE_TENANT_HEADER } : {}),
     getTenantId: () => 'tenant-fixed',
   };
 

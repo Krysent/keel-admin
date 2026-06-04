@@ -10,8 +10,9 @@
  *
  * Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6
  */
-import { describe, expect, it } from 'vitest';
 import { theme as antdTheme } from 'antd';
+import { describe, expect, it } from 'vitest';
+
 import {
   tokens,
   darkTokens,
@@ -19,7 +20,7 @@ import {
   themeConfig,
   darkThemeConfig,
   globalStyles,
-} from '../src/index.js';
+} from '../src/index.ts';
 
 describe('tokens (light)', () => {
   it('uses the iOS system blue as the primary color', () => {

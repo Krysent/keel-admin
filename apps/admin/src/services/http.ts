@@ -14,12 +14,13 @@
  */
 
 import { createHttp, createTokenManager, type TokenManager } from '@keel/http';
+
+import { useAppStore } from '../stores/app.store';
+import { useTenantStore } from '../stores/tenant.store';
+import { useUserStore } from '../stores/user.store';
+
 import type { TokenPair } from '@keel/types';
 import type { StorageKind } from '@keel/utils';
-
-import { useUserStore } from '../stores/user.store';
-import { useTenantStore } from '../stores/tenant.store';
-import { useAppStore } from '../stores/app.store';
 
 /**
  * Resolve Token storage backend from VITE_AUTH_STORAGE env variable.
@@ -59,11 +60,9 @@ export const tokenManager: TokenManager = createTokenManager({
     // Use the http instance directly. The request is tagged with
     // `skipAuthRefresh` by the factory's 401 interceptor so we don't
     // loop. We POST the refresh token in the body.
-    const result = await http.post<TokenPair>(
-      '/auth/refresh',
-      { refreshToken },
-      { skipAuthRefresh: true } as never,
-    );
+    const result = await http.post<TokenPair>('/auth/refresh', { refreshToken }, {
+      skipAuthRefresh: true,
+    } as never);
     return result as unknown as TokenPair;
   },
   onAuthExpired: () => {

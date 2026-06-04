@@ -57,14 +57,13 @@
  * the refresh path is exercised by `token-manager.pbt.test.ts`.)
  */
 
+import { stableHash } from '@keel/utils';
 import {
   AxiosError,
   CanceledError,
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from 'axios';
-
-import { stableHash } from '@keel/utils';
 
 /** Internal symbol stamped onto a config so we can correlate response → fingerprint. */
 const FP_KEY = '__keelDedupeFingerprint__' as const;
@@ -95,12 +94,7 @@ export interface DedupeHandle {
    * Compute the same fingerprint the request interceptor would stamp.
    * Exposed so tests can correlate without re-implementing the formula.
    */
-  fingerprint(spec: {
-    method?: string;
-    url?: string;
-    params?: unknown;
-    data?: unknown;
-  }): string;
+  fingerprint(spec: { method?: string; url?: string; params?: unknown; data?: unknown }): string;
 }
 
 /**

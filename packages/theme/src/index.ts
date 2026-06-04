@@ -13,7 +13,7 @@
  *     soft card shadow, iOS scrollbar (also shipped as `./global.css`)
  */
 
-export { tokens, darkTokens } from './tokens.js';
-export { componentOverrides } from './components.js';
-export { themeConfig, darkThemeConfig } from './theme-config.js';
-export { globalStyles } from './global-styles.js';
+export { tokens, darkTokens } from './tokens.ts';
+export { componentOverrides } from './components.ts';
+export { themeConfig, darkThemeConfig } from './theme-config.ts';
+export { globalStyles } from './global-styles.ts';

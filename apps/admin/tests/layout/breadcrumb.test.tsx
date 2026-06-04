@@ -12,16 +12,17 @@
  * Validates: Requirements 22.4
  */
 
-import React from 'react';
-import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
 import i18next from 'i18next';
+import React from 'react';
+import { I18nextProvider } from 'react-i18next';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-import { useUserStore } from '../../src/stores/user.store.js';
-import { Breadcrumb } from '../../src/layout/Breadcrumb.js';
+import { Breadcrumb } from '../../src/layout/Breadcrumb.ts';
+import { useUserStore } from '../../src/stores/user.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
 import type { MenuNode } from '@keel/types';
 
 // ---------------------------------------------------------------------------
@@ -149,12 +150,8 @@ describe('Breadcrumb — ancestor chain format "一级菜单 / 二级菜单" (Re
     const userEl = screen.getByText('用户管理');
 
     // Verify document order: 首页 comes before 系统管理, which comes before 用户管理
-    expect(
-      homeEl.compareDocumentPosition(sysEl) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(
-      sysEl.compareDocumentPosition(userEl) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(homeEl.compareDocumentPosition(sysEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(sysEl.compareDocumentPosition(userEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('traverses hidden-flag nodes in the chain (hidden route is still in tree)', () => {

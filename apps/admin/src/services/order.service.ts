@@ -7,9 +7,9 @@
  * Validates: Requirements 3.2, 5.4
  */
 
-import type { PageQuery, PageResult } from '@keel/types';
-
 import { http } from './http';
+
+import type { PageQuery, PageResult } from '@keel/types';
 
 /** Order entity as returned by the backend. */
 export interface Order {
@@ -52,8 +52,7 @@ export const orderService = {
   /**
    * GET /orders/:id — single order detail.
    */
-  detail: (id: string): Promise<Order> =>
-    http.get(`/orders/${id}`) as unknown as Promise<Order>,
+  detail: (id: string): Promise<Order> => http.get(`/orders/${id}`) as unknown as Promise<Order>,
 
   /**
    * POST /orders — create a new order.
@@ -70,8 +69,7 @@ export const orderService = {
   /**
    * DELETE /orders/:id — remove an order.
    */
-  remove: (id: string): Promise<void> =>
-    http.delete(`/orders/${id}`) as unknown as Promise<void>,
+  remove: (id: string): Promise<void> => http.delete(`/orders/${id}`) as unknown as Promise<void>,
 
   /**
    * POST /orders/export — trigger an export job. Returns the download URL.

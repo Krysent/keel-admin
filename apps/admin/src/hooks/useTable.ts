@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import type { PageResult } from '@keel/types';
 
 /** Parameters passed to the service fetcher. */
@@ -85,13 +86,7 @@ function buildCacheId(cacheKey: string, params: Record<string, unknown>): string
 export function useTable<T, P extends TableFetchParams = TableFetchParams>(
   options: UseTableOptions<T, P>,
 ): UseTableReturn<T, P> {
-  const {
-    fetchFn,
-    cacheKey,
-    defaultPageSize = 10,
-    defaultPage = 1,
-    defaultParams = {},
-  } = options;
+  const { fetchFn, cacheKey, defaultPageSize = 10, defaultPage = 1, defaultParams = {} } = options;
 
   const [data, setData] = useState<T[]>([]);
   const [total, setTotal] = useState(0);
@@ -99,9 +94,9 @@ export function useTable<T, P extends TableFetchParams = TableFetchParams>(
   const [pageSize, setPageSize] = useState(defaultPageSize);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchParams, setSearchParams] = useState<
-    Partial<Omit<P, 'page' | 'pageSize'>>
-  >(defaultParams as Partial<Omit<P, 'page' | 'pageSize'>>);
+  const [searchParams, setSearchParams] = useState<Partial<Omit<P, 'page' | 'pageSize'>>>(
+    defaultParams as Partial<Omit<P, 'page' | 'pageSize'>>,
+  );
 
   // Track the latest request to avoid race conditions.
   const seqRef = useRef(0);
@@ -159,13 +154,10 @@ export function useTable<T, P extends TableFetchParams = TableFetchParams>(
     doFetch(page, pageSize, searchParams);
   }, [doFetch, page, pageSize, searchParams]);
 
-  const search = useCallback(
-    (params: Partial<Omit<P, 'page' | 'pageSize'>>) => {
-      setPage(1);
-      setSearchParams(params);
-    },
-    [],
-  );
+  const search = useCallback((params: Partial<Omit<P, 'page' | 'pageSize'>>) => {
+    setPage(1);
+    setSearchParams(params);
+  }, []);
 
   const reset = useCallback(() => {
     setPage(defaultPage);

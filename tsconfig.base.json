@@ -16,6 +16,8 @@
 
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "rewriteRelativeImportExtensions": true,
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

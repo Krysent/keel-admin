@@ -6,9 +6,8 @@
  * need without circular imports.
  */
 
+import type { TokenManager } from './token-manager.ts';
 import type { LocaleCode } from '@keel/types';
-
-import type { TokenManager } from './token-manager.js';
 
 /**
  * Options accepted by `createHttp`. The factory will be filled out across

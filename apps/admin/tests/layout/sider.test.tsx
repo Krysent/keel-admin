@@ -12,17 +12,18 @@
  * i18next, react-router-dom, and ResizeObserver.
  */
 
-import React from 'react';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
 import i18next from 'i18next';
+import React from 'react';
+import { I18nextProvider } from 'react-i18next';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-import { useAppStore } from '../../src/stores/app.store.js';
-import { useUserStore } from '../../src/stores/user.store.js';
-import { Sider } from '../../src/layout/Sider.js';
+import { Sider } from '../../src/layout/Sider.ts';
+import { useAppStore } from '../../src/stores/app.store.ts';
+import { useUserStore } from '../../src/stores/user.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
 import type { MenuNode } from '@keel/types';
 
 // ---------------------------------------------------------------------------
@@ -162,9 +163,7 @@ describe('Sider — empty menus placeholder (Req 22.13)', () => {
   });
 
   it('renders the AntD Menu when menus are non-empty', () => {
-    const menus: MenuNode[] = [
-      { id: '1', title: 'menu.dashboard', path: '/dashboard' },
-    ];
+    const menus: MenuNode[] = [{ id: '1', title: 'menu.dashboard', path: '/dashboard' }];
     useUserStore.getState().setMenus(menus);
     const { container } = renderSider();
     const menuEl = container.querySelector('[role="menu"]');

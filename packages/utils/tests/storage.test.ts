@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createStorage, resolveBackend } from '../src/storage.js';
+import { createStorage, resolveBackend } from '../src/storage.ts';
 
 describe('createStorage', () => {
   describe('memory backend', () => {

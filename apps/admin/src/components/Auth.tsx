@@ -16,10 +16,11 @@
  * Validates: Requirement 4.4
  */
 
-import type { ReactNode } from 'react';
 import { evaluatePermission, type PermissionMode } from '@keel/auth';
 
 import { useUserStore } from '../stores/user.store';
+
+import type { ReactNode } from 'react';
 
 export interface AuthProps {
   /** Permission code(s) required to render children. */
@@ -37,12 +38,7 @@ export interface AuthProps {
  * Renders `children` when the current user holds the required permission
  * code(s); otherwise renders `fallback` (default hidden).
  */
-export function Auth({
-  code,
-  mode = 'some',
-  fallback = null,
-  children,
-}: AuthProps): JSX.Element {
+export function Auth({ code, mode = 'some', fallback = null, children }: AuthProps): JSX.Element {
   const permissions = useUserStore((s) => s.permissions);
   const roles = useUserStore((s) => s.roles);
 

@@ -1,8 +1,4 @@
-import type {
-  PermissionCode,
-  PermissionContext,
-  PermissionMode,
-} from './types.js';
+import type { PermissionCode, PermissionContext, PermissionMode } from './types.ts';
 
 /**
  * Pure permission evaluator — the semantic core of `usePermission().has(...)`.
@@ -61,9 +57,7 @@ export function evaluatePermission(
   // default `permissions.has` check; this is the ABAC extension point.
   // We arrow-bind `ctx` in once so each call site below stays readable.
   const check = (c: string): boolean =>
-    ctx.predicate !== undefined
-      ? ctx.predicate(c, ctx)
-      : ctx.permissions.has(c);
+    ctx.predicate !== undefined ? ctx.predicate(c, ctx) : ctx.permissions.has(c);
 
   // (2) Single string — the most common case in business code.
   if (typeof code === 'string') return check(code);

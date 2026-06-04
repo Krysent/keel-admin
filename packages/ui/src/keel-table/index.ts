@@ -9,14 +9,11 @@
  * Curated re-exports only — no `export *` (Requirement 2.6).
  */
 
-export {
-  filterColumnsByPermission,
-  type KeelColumn,
-} from './filter-columns.js';
+export { filterColumnsByPermission, type KeelColumn } from './filter-columns.ts';
 
 export {
   KeelTable,
   VIRTUAL_SCROLL_THRESHOLD,
   type KeelTableProps,
   type KeelTableColumnType,
-} from './KeelTable.js';
+} from './KeelTable.ts';

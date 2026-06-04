@@ -45,14 +45,10 @@
  *                         use as the "smaller" side `P1`.
  */
 
-import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
 
-import {
-  evaluatePermission,
-  type PermissionContext,
-  type PermissionMode,
-} from '../src/index.js';
+import { evaluatePermission, type PermissionContext, type PermissionMode } from '../src/index.ts';
 
 // ---------------------------------------------------------------------------
 //   Generators
@@ -237,14 +233,12 @@ describe('evaluatePermission: monotonicity in the permission set (task 5.1)', ()
    * inside the property's precondition — no shrink budget is wasted on
    * non-subset rejections.
    */
-  const subsetPairArb = fc
-    .uniqueArray(codeArb, { minLength: 0, maxLength: 12 })
-    .chain((universe) =>
-      fc.tuple(
-        fc.subarray(universe).map((arr) => new Set(arr)), // P1
-        fc.constant(new Set(universe)), // P2
-      ),
-    );
+  const subsetPairArb = fc.uniqueArray(codeArb, { minLength: 0, maxLength: 12 }).chain((universe) =>
+    fc.tuple(
+      fc.subarray(universe).map((arr) => new Set(arr)), // P1
+      fc.constant(new Set(universe)), // P2
+    ),
+  );
 
   it('single-value: has_{P1}(c) ⟹ has_{P2}(c) when P1 ⊆ P2', () => {
     fc.assert(

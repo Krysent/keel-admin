@@ -10,21 +10,10 @@
  *            `evaluatePermission` exported here).
  */
 
-export { evaluatePermission } from './evaluate.js';
+export { evaluatePermission } from './evaluate.ts';
 
-export {
-  buildRoutes,
-  STATIC_FALLBACK_PATHS,
-} from './build-routes.js';
+export { buildRoutes, STATIC_FALLBACK_PATHS } from './build-routes.ts';
 
-export type {
-  AuthAdapter,
-  PermissionCode,
-  PermissionContext,
-  PermissionMode,
-} from './types.js';
+export type { AuthAdapter, PermissionCode, PermissionContext, PermissionMode } from './types.ts';
 
-export type {
-  BuildRoutesContext,
-  StaticFallbackPath,
-} from './build-routes.js';
+export type { BuildRoutesContext, StaticFallbackPath } from './build-routes.ts';

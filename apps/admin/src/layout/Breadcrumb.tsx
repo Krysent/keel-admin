@@ -16,12 +16,13 @@
  *     "首页/Home" node (instead of null).
  */
 
-import { useMemo } from 'react';
 import { Breadcrumb as AntBreadcrumb } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 
 import { useUserStore } from '../stores/user.store';
+
 import { findMenuPath } from './lib/menu-tree';
 
 export function Breadcrumb(): JSX.Element {
@@ -36,10 +37,7 @@ export function Breadcrumb(): JSX.Element {
   // pathname doesn't match anything in the menu (e.g. an exception
   // page) `chain` is null — in that case we fall back to showing only
   // the home node (Requirement 22.4).
-  const chain = useMemo(
-    () => findMenuPath(menus, pathname),
-    [menus, pathname],
-  );
+  const chain = useMemo(() => findMenuPath(menus, pathname), [menus, pathname]);
 
   const homeLabel = t('breadcrumb.home', {
     defaultValue: isZhCN ? '首页' : 'Home',

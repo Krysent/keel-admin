@@ -8,10 +8,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  useOrderStore,
-  INITIAL_ORDER_STATE,
-} from '../../src/stores/modules/order.store.js';
+
+import { useOrderStore, INITIAL_ORDER_STATE } from '../../src/stores/modules/order.store.ts';
 
 beforeEach(() => {
   useOrderStore.getState().reset();

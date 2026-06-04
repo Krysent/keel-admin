@@ -50,33 +50,25 @@
  * shrunk counter-examples) we compare via sorted arrays.
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import type { MenuNode, Tenant, TabItem, UserInfo } from '@keel/types';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-
-import {
-  useUserStore,
-  INITIAL_USER_STATE,
-  type UserStore,
-} from '../../src/stores/user.store.js';
-import {
-  useTenantStore,
-  INITIAL_TENANT_STATE,
-  type TenantStore,
-} from '../../src/stores/tenant.store.js';
-import {
-  useAppStore,
-  INITIAL_APP_STATE,
-  type AppStore,
-} from '../../src/stores/app.store.js';
+import { useAppStore, INITIAL_APP_STATE, type AppStore } from '../../src/stores/app.store.ts';
 import {
   useOrderStore,
   INITIAL_ORDER_STATE,
   type OrderStore,
   type OrderFilters,
-} from '../../src/stores/modules/order.store.js';
+} from '../../src/stores/modules/order.store.ts';
+import {
+  useTenantStore,
+  INITIAL_TENANT_STATE,
+  type TenantStore,
+} from '../../src/stores/tenant.store.ts';
+import { useUserStore, INITIAL_USER_STATE, type UserStore } from '../../src/stores/user.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
+import type { MenuNode, Tenant, TabItem, UserInfo } from '@keel/types';
 
 // ---------------------------------------------------------------------------
 //   Shared helpers
@@ -122,18 +114,10 @@ const menuNodeArb: fc.Arbitrary<MenuNode> = fc.record({
 type UserOp = (s: UserStore) => void;
 
 const userOpArb: fc.Arbitrary<UserOp> = fc.oneof(
-  fc.option(userInfoArb, { nil: null }).map(
-    (u) => (s: UserStore) => s.setUser(u),
-  ),
-  fc.array(menuNodeArb, { maxLength: 3 }).map(
-    (ms) => (s: UserStore) => s.setMenus(ms),
-  ),
-  fc.array(codeArb, { maxLength: 4 }).map(
-    (codes) => (s: UserStore) => s.setPermissions(codes),
-  ),
-  fc.array(codeArb, { maxLength: 4 }).map(
-    (codes) => (s: UserStore) => s.setRoles(codes),
-  ),
+  fc.option(userInfoArb, { nil: null }).map((u) => (s: UserStore) => s.setUser(u)),
+  fc.array(menuNodeArb, { maxLength: 3 }).map((ms) => (s: UserStore) => s.setMenus(ms)),
+  fc.array(codeArb, { maxLength: 4 }).map((codes) => (s: UserStore) => s.setPermissions(codes)),
+  fc.array(codeArb, { maxLength: 4 }).map((codes) => (s: UserStore) => s.setRoles(codes)),
   // Calling `reset` mid-sequence is also a valid mutation — including it
   // here gives the property extra coverage of `reset` interleavings.
   fc.constant<UserOp>((s) => s.reset()),
@@ -146,7 +130,12 @@ interface UserSnapshot {
   roles: string[];
 }
 
-function snapshotUser(s: { userInfo: UserInfo | null; menus: MenuNode[]; permissions: Set<string>; roles: Set<string> }): UserSnapshot {
+function snapshotUser(s: {
+  userInfo: UserInfo | null;
+  menus: MenuNode[];
+  permissions: Set<string>;
+  roles: Set<string>;
+}): UserSnapshot {
   return {
     userInfo: s.userInfo,
     menus: s.menus,
@@ -167,18 +156,12 @@ const tenantArb: fc.Arbitrary<Tenant> = fc.record({
 type TenantOp = (s: TenantStore) => void;
 
 const tenantOpArb: fc.Arbitrary<TenantOp> = fc.oneof(
-  fc.array(tenantArb, { maxLength: 3 }).map(
-    (list) => (s: TenantStore) => s.setList(list),
-  ),
-  fc.option(tenantArb, { nil: null }).map(
-    (t) => (s: TenantStore) => s.setCurrent(t),
-  ),
+  fc.array(tenantArb, { maxLength: 3 }).map((list) => (s: TenantStore) => s.setList(list)),
+  fc.option(tenantArb, { nil: null }).map((t) => (s: TenantStore) => s.setCurrent(t)),
   // `switchTenant` only mutates when the id is in the current `list`; the
   // generator emits arbitrary ids on purpose so we exercise the no-op
   // branch as well as the hit branch.
-  fc.string({ minLength: 1, maxLength: 3 }).map(
-    (id) => (s: TenantStore) => s.switchTenant(id),
-  ),
+  fc.string({ minLength: 1, maxLength: 3 }).map((id) => (s: TenantStore) => s.switchTenant(id)),
   fc.constant<TenantOp>((s) => s.reset()),
 );
 
@@ -201,19 +184,11 @@ type AppOp = (s: AppStore) => void;
 const appOpArb: fc.Arbitrary<AppOp> = fc.oneof(
   fc.boolean().map((v) => (s: AppStore) => s.setCollapsed(v)),
   fc.constant<AppOp>((s) => s.toggleCollapsed()),
-  fc.constantFrom('light' as const, 'dark' as const).map(
-    (m) => (s: AppStore) => s.setTheme(m),
-  ),
-  fc.constantFrom('zh-CN' as const, 'en-US' as const).map(
-    (l) => (s: AppStore) => s.setLocale(l),
-  ),
+  fc.constantFrom('light' as const, 'dark' as const).map((m) => (s: AppStore) => s.setTheme(m)),
+  fc.constantFrom('zh-CN' as const, 'en-US' as const).map((l) => (s: AppStore) => s.setLocale(l)),
   tabArb.map((t) => (s: AppStore) => s.addTab(t)),
-  fc.string({ minLength: 1, maxLength: 4 }).map(
-    (k) => (s: AppStore) => s.removeTab(k),
-  ),
-  fc.array(tabArb, { maxLength: 3 }).map(
-    (ts) => (s: AppStore) => s.setTabs(ts),
-  ),
+  fc.string({ minLength: 1, maxLength: 4 }).map((k) => (s: AppStore) => s.removeTab(k)),
+  fc.array(tabArb, { maxLength: 3 }).map((ts) => (s: AppStore) => s.setTabs(ts)),
   fc.constant<AppOp>((s) => s.reset()),
 );
 
@@ -237,9 +212,9 @@ type OrderOp = (s: OrderStore) => void;
 
 const orderOpArb: fc.Arbitrary<OrderOp> = fc.oneof(
   orderFiltersPatchArb.map((p) => (s: OrderStore) => s.setFilters(p)),
-  fc.array(fc.string({ minLength: 1, maxLength: 3 }), { maxLength: 4 }).map(
-    (ids) => (s: OrderStore) => s.setSelectedIds(ids),
-  ),
+  fc
+    .array(fc.string({ minLength: 1, maxLength: 3 }), { maxLength: 4 })
+    .map((ids) => (s: OrderStore) => s.setSelectedIds(ids)),
   fc.constant<OrderOp>((s) => s.resetFilters()),
   fc.constant<OrderOp>((s) => s.reset()),
 );
@@ -261,26 +236,22 @@ beforeEach(() => {
 describe('reset() idempotence (Requirement 6.3 / design Property 2)', () => {
   it('userStore: reset^n(applyOps(s0, ops)) === INITIAL_USER_STATE for any ops, n ≥ 1', () => {
     fc.assert(
-      fc.property(
-        fc.array(userOpArb, { maxLength: MAX_OPS_PER_RUN }),
-        resetCountArb,
-        (ops, n) => {
-          // Per-run isolation.
-          useUserStore.getState().reset();
+      fc.property(fc.array(userOpArb, { maxLength: MAX_OPS_PER_RUN }), resetCountArb, (ops, n) => {
+        // Per-run isolation.
+        useUserStore.getState().reset();
 
-          // Apply arbitrary mutations via the public action surface.
-          for (const op of ops) op(useUserStore.getState());
+        // Apply arbitrary mutations via the public action surface.
+        for (const op of ops) op(useUserStore.getState());
 
-          // Reset n ≥ 1 times.
-          for (let i = 0; i < n; i++) useUserStore.getState().reset();
+        // Reset n ≥ 1 times.
+        for (let i = 0; i < n; i++) useUserStore.getState().reset();
 
-          // The final state must equal INITIAL_USER_STATE — that's the
-          // "≡ reset(state) (called once)" half of Requirement 6.3.
-          expect(snapshotUser(useUserStore.getState())).toStrictEqual(
-            snapshotUser(INITIAL_USER_STATE),
-          );
-        },
-      ),
+        // The final state must equal INITIAL_USER_STATE — that's the
+        // "≡ reset(state) (called once)" half of Requirement 6.3.
+        expect(snapshotUser(useUserStore.getState())).toStrictEqual(
+          snapshotUser(INITIAL_USER_STATE),
+        );
+      }),
       { numRuns: 100 },
     );
   });
@@ -306,40 +277,32 @@ describe('reset() idempotence (Requirement 6.3 / design Property 2)', () => {
 
   it('appStore: reset^n is equivalent to reset', () => {
     fc.assert(
-      fc.property(
-        fc.array(appOpArb, { maxLength: MAX_OPS_PER_RUN }),
-        resetCountArb,
-        (ops, n) => {
-          useAppStore.getState().reset();
-          for (const op of ops) op(useAppStore.getState());
-          for (let i = 0; i < n; i++) useAppStore.getState().reset();
+      fc.property(fc.array(appOpArb, { maxLength: MAX_OPS_PER_RUN }), resetCountArb, (ops, n) => {
+        useAppStore.getState().reset();
+        for (const op of ops) op(useAppStore.getState());
+        for (let i = 0; i < n; i++) useAppStore.getState().reset();
 
-          const s = useAppStore.getState();
-          expect(s.collapsed).toBe(INITIAL_APP_STATE.collapsed);
-          expect(s.theme).toBe(INITIAL_APP_STATE.theme);
-          expect(s.locale).toBe(INITIAL_APP_STATE.locale);
-          expect(s.tabs).toStrictEqual(INITIAL_APP_STATE.tabs);
-        },
-      ),
+        const s = useAppStore.getState();
+        expect(s.collapsed).toBe(INITIAL_APP_STATE.collapsed);
+        expect(s.theme).toBe(INITIAL_APP_STATE.theme);
+        expect(s.locale).toBe(INITIAL_APP_STATE.locale);
+        expect(s.tabs).toStrictEqual(INITIAL_APP_STATE.tabs);
+      }),
       { numRuns: 100 },
     );
   });
 
   it('orderStore: reset^n is equivalent to reset', () => {
     fc.assert(
-      fc.property(
-        fc.array(orderOpArb, { maxLength: MAX_OPS_PER_RUN }),
-        resetCountArb,
-        (ops, n) => {
-          useOrderStore.getState().reset();
-          for (const op of ops) op(useOrderStore.getState());
-          for (let i = 0; i < n; i++) useOrderStore.getState().reset();
+      fc.property(fc.array(orderOpArb, { maxLength: MAX_OPS_PER_RUN }), resetCountArb, (ops, n) => {
+        useOrderStore.getState().reset();
+        for (const op of ops) op(useOrderStore.getState());
+        for (let i = 0; i < n; i++) useOrderStore.getState().reset();
 
-          const s = useOrderStore.getState();
-          expect(s.filters).toStrictEqual(INITIAL_ORDER_STATE.filters);
-          expect(s.selectedIds).toStrictEqual(INITIAL_ORDER_STATE.selectedIds);
-        },
-      ),
+        const s = useOrderStore.getState();
+        expect(s.filters).toStrictEqual(INITIAL_ORDER_STATE.filters);
+        expect(s.selectedIds).toStrictEqual(INITIAL_ORDER_STATE.selectedIds);
+      }),
       { numRuns: 100 },
     );
   });

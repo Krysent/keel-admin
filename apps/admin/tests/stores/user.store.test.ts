@@ -11,12 +11,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import { useUserStore, INITIAL_USER_STATE } from '../../src/stores/user.store.ts';
+import { clearLocalStorage, getInstalledStorage } from '../setup-local-storage.ts';
+
 import type { UserInfo } from '@keel/types';
-import { clearLocalStorage, getInstalledStorage } from '../setup-local-storage.js';
-import {
-  useUserStore,
-  INITIAL_USER_STATE,
-} from '../../src/stores/user.store.js';
 
 const SAMPLE_USER: UserInfo = {
   id: 'u-1',
@@ -72,9 +71,7 @@ describe('userStore — actions', () => {
     api.setUser(SAMPLE_USER);
     api.setPermissions(['order:list']);
     api.setRoles(['admin']);
-    api.setMenus([
-      { id: 'm-1', title: 'Home', path: '/' },
-    ]);
+    api.setMenus([{ id: 'm-1', title: 'Home', path: '/' }]);
     api.reset();
     const s = useUserStore.getState();
     expect(s.userInfo).toBe(INITIAL_USER_STATE.userInfo);

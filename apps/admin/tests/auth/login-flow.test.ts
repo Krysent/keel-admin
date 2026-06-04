@@ -21,15 +21,16 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { MenuNode, Tenant, TokenPair, UserInfo } from '@keel/types';
-import type { TokenManager } from '@keel/http';
 
 import {
   runHydrateAfterLogin,
   runLoginFlow,
   type LoginDeps,
   type LoginStoreWriters,
-} from '../../src/auth/login-flow.js';
+} from '../../src/auth/login-flow.ts';
+
+import type { TokenManager } from '@keel/http';
+import type { MenuNode, Tenant, TokenPair, UserInfo } from '@keel/types';
 
 function makeUser(overrides: Partial<UserInfo> = {}): UserInfo {
   return {
@@ -145,10 +146,7 @@ describe('runLoginFlow', () => {
 
     const deps: LoginDeps = { services, tokenManager: tm, stores: writers };
 
-    const result = await runLoginFlow(
-      { username: 'alice', password: 'secret' },
-      deps,
-    );
+    const result = await runLoginFlow({ username: 'alice', password: 'secret' }, deps);
 
     // Step 1: /auth/login was called with the credentials. The
     // orchestration forwards the credentials object unchanged — the

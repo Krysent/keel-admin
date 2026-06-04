@@ -9,12 +9,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import { useAppStore, INITIAL_APP_STATE } from '../../src/stores/app.store.ts';
+import { clearLocalStorage, getInstalledStorage } from '../setup-local-storage.ts';
+
 import type { TabItem } from '@keel/types';
-import { clearLocalStorage, getInstalledStorage } from '../setup-local-storage.js';
-import {
-  useAppStore,
-  INITIAL_APP_STATE,
-} from '../../src/stores/app.store.js';
 
 const TAB_HOME: TabItem = { key: '/home', title: 'Home', path: '/home', affix: true };
 const TAB_USER: TabItem = { key: '/system/user', title: 'Users', path: '/system/user' };

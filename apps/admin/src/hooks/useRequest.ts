@@ -117,23 +117,13 @@ function buildCacheId<P>(cacheKey: string, params: P): string {
  * });
  * ```
  */
-export function useRequest<T, P = void>(
-  options: UseRequestOptions<T, P>,
-): UseRequestReturn<T> {
-  const {
-    fetchFn,
-    cacheKey,
-    params,
-    enabled = true,
-    initialData,
-  } = options;
+export function useRequest<T, P = void>(options: UseRequestOptions<T, P>): UseRequestReturn<T> {
+  const { fetchFn: _fetchFn, cacheKey, params, enabled = true, initialData } = options;
 
   const cid = buildCacheId(cacheKey, params);
   const cached = swrCache.get(cid) as T | undefined;
 
-  const [data, setData] = useState<T | undefined>(
-    cached ?? initialData,
-  );
+  const [data, setData] = useState<T | undefined>(cached ?? initialData);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -145,10 +135,7 @@ export function useRequest<T, P = void>(
   optRef.current = options;
 
   const doFetch = useCallback(() => {
-    const currentCid = buildCacheId(
-      optRef.current.cacheKey,
-      optRef.current.params,
-    );
+    const currentCid = buildCacheId(optRef.current.cacheKey, optRef.current.params);
     const existingCache = swrCache.get(currentCid) as T | undefined;
 
     if (existingCache !== undefined) {
@@ -191,17 +178,11 @@ export function useRequest<T, P = void>(
     doFetch();
   }, [doFetch]);
 
-  const mutate = useCallback(
-    (newData: T) => {
-      setData(newData);
-      const currentCid = buildCacheId(
-        optRef.current.cacheKey,
-        optRef.current.params,
-      );
-      swrCache.set(currentCid, newData);
-    },
-    [],
-  );
+  const mutate = useCallback((newData: T) => {
+    setData(newData);
+    const currentCid = buildCacheId(optRef.current.cacheKey, optRef.current.params);
+    swrCache.set(currentCid, newData);
+  }, []);
 
   return { data, loading, refreshing, error, refresh, mutate };
 }

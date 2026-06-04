@@ -18,7 +18,6 @@
  *     service belongs in task 9.4.
  */
 
-import { Button, Dropdown, Input, Layout, Space, type MenuProps } from 'antd';
 import {
   BellOutlined,
   GlobalOutlined,
@@ -27,17 +26,21 @@ import {
   MoonOutlined,
   SearchOutlined,
   SunOutlined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   UserOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
+import { Button, Dropdown, Input, Layout, Space, type MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { CSSProperties } from 'react';
 
 import { useAppStore } from '../stores/app.store';
 import { useTenantStore } from '../stores/tenant.store';
 import { useUserStore } from '../stores/user.store';
+
 import { Breadcrumb } from './Breadcrumb';
 import { useUserMenu } from './lib/use-user-menu';
+
+import type { CSSProperties } from 'react';
 
 const { Header: AntHeader } = Layout;
 
@@ -66,9 +69,11 @@ export function Header({ style }: HeaderProps = {}): JSX.Element {
   const switchTenant = useTenantStore((s) => s.switchTenant);
 
   const userInfo = useUserStore((s) => s.userInfo);
+  void userInfo; // wired up in task 9.4 (user dropdown menu).
 
   const { t, i18n } = useTranslation();
   const userMenu = useUserMenu();
+  void userMenu; // wired up in task 9.4 (user dropdown menu).
 
   /** True when the active language is Chinese (zh-CN or any zh-* variant). */
   const isZhCN = i18n.language === 'zh-CN' || i18n.language?.startsWith('zh');
@@ -145,9 +150,10 @@ export function Header({ style }: HeaderProps = {}): JSX.Element {
         {tenantList.length > 0 && (
           <Dropdown menu={tenantMenu} trigger={['click']} placement="bottomRight">
             <Button type="text" className="keel-header__tenant" icon={<TeamOutlined />}>
-              {currentTenant?.name ?? t('header.tenant.placeholder', {
-                defaultValue: isZhCN ? '切换租户' : 'Tenant',
-              })}
+              {currentTenant?.name ??
+                t('header.tenant.placeholder', {
+                  defaultValue: isZhCN ? '切换租户' : 'Tenant',
+                })}
             </Button>
           </Dropdown>
         )}

@@ -8,10 +8,6 @@
  *            top of the same factory exported here.
  */
 
-export { createI18n, DEFAULT_DETECTION_ORDER } from './create-i18n.js';
+export { createI18n, DEFAULT_DETECTION_ORDER } from './create-i18n.ts';
 
-export type {
-  CreateI18nOptions,
-  I18nBackend,
-  KeelI18n,
-} from './types.js';
+export type { CreateI18nOptions, I18nBackend, KeelI18n } from './types.ts';

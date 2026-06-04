@@ -19,6 +19,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+
 import type { MenuNode, UserInfo } from '@keel/types';
 
 /** Public state shape — exported so selectors and tests can type against it. */

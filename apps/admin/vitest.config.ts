@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 /**
  * Vitest config for `@keel/admin`.
@@ -27,12 +27,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: [
-        'src/**/index.ts',
-        'src/**/*.d.ts',
-        'src/vite-env.d.ts',
-        'src/types/**',
-      ],
+      exclude: ['src/**/index.ts', 'src/**/*.d.ts', 'src/vite-env.d.ts', 'src/types/**'],
       thresholds: {
         lines: 80,
         branches: 90,

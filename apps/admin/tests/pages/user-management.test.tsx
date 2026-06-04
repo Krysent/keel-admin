@@ -25,15 +25,18 @@
  * Validates: Requirements 23.6, 23.7, 23.8, 23.9, 23.10
  */
 
-import React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import { App as AntApp } from 'antd';
+import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearLocalStorage } from '../setup-local-storage.js';
-import { useUserStore } from '../../src/stores/user.store.js';
-import { useAppStore } from '../../src/stores/app.store.js';
+import UserManagementPage from '../../src/pages/system/user/index.ts';
+import { userService } from '../../src/services/index.ts';
+import { useAppStore } from '../../src/stores/app.store.ts';
+import { useUserStore } from '../../src/stores/user.store.ts';
+import { clearLocalStorage } from '../setup-local-storage.ts';
+
 import type { UserInfo } from '@keel/types';
 
 // ---------------------------------------------------------------------------
@@ -60,7 +63,7 @@ Object.defineProperty(window, 'matchMedia', {
 // ---------------------------------------------------------------------------
 
 // Mock userService so we control success/failure without a real server
-vi.mock('../../src/services/index.js', () => ({
+vi.mock('../../src/services/index.ts', () => ({
   userService: {
     list: vi.fn().mockResolvedValue({ list: [], total: 0 }),
     create: vi.fn().mockResolvedValue({}),
@@ -90,9 +93,7 @@ vi.mock('@keel/ui', async (importActual) => {
 // Import after mocks
 // ---------------------------------------------------------------------------
 
-import { userService } from '../../src/services/index.js';
-import UserManagementPage from '../../src/pages/system/user/index.js';
-import { BizError } from '@keel/http';
+import { BizError as _BizError } from '@keel/http';
 import { filterColumnsByPermission } from '@keel/ui';
 
 // ---------------------------------------------------------------------------
@@ -130,7 +131,9 @@ function renderPage() {
  * edit button is rendered.
  */
 function grantUpdatePermission() {
-  useUserStore.getState().setPermissions(['user:update', 'user:list', 'user:create', 'user:delete']);
+  useUserStore
+    .getState()
+    .setPermissions(['user:update', 'user:list', 'user:create', 'user:delete']);
   useUserStore.getState().setRoles(['admin']);
 }
 
@@ -150,8 +153,7 @@ async function openEditModal(user: UserInfo) {
   const editButton =
     editButtons.find(
       (btn) =>
-        btn.closest('tr')?.textContent?.includes(user.username) ||
-        btn.closest('td') !== null,
+        btn.closest('tr')?.textContent?.includes(user.username) || btn.closest('td') !== null,
     ) ?? editButtons[0];
 
   if (!editButton) throw new Error('Edit button not found');
@@ -374,7 +376,9 @@ describe('Edit Modal — displayName, email, roles are editable (Req 23.6)', () 
  * Grant all permissions needed to render the delete button.
  */
 function grantDeletePermission() {
-  useUserStore.getState().setPermissions(['user:delete', 'user:list', 'user:create', 'user:update']);
+  useUserStore
+    .getState()
+    .setPermissions(['user:delete', 'user:list', 'user:create', 'user:update']);
   useUserStore.getState().setRoles(['admin']);
 }
 
@@ -476,7 +480,9 @@ describe('Delete Popconfirm — confirm calls userService.remove (Req 23.8)', ()
 
     // Wait for Popconfirm to appear
     await waitFor(() => {
-      expect(screen.getByText(`确定删除用户 "${SAMPLE_USER.displayName}" 吗？`)).toBeInTheDocument();
+      expect(
+        screen.getByText(`确定删除用户 "${SAMPLE_USER.displayName}" 吗？`),
+      ).toBeInTheDocument();
     });
 
     // AntD v5 Popconfirm uses class `ant-popconfirm-buttons` for its ok/cancel buttons
@@ -513,7 +519,9 @@ describe('Delete Popconfirm — confirm calls userService.remove (Req 23.8)', ()
     await clickDeleteButton(SAMPLE_USER);
 
     await waitFor(() => {
-      expect(screen.getByText(`确定删除用户 "${SAMPLE_USER.displayName}" 吗？`)).toBeInTheDocument();
+      expect(
+        screen.getByText(`确定删除用户 "${SAMPLE_USER.displayName}" 吗？`),
+      ).toBeInTheDocument();
     });
 
     // Find the Cancel button in the popconfirm buttons
@@ -589,7 +597,9 @@ describe('Email column filtering via filterColumnsByPermission (Req 23.10)', () 
 
   it('email column header IS rendered when user has user:list permission', async () => {
     // Grant user:list so the email column passes the permission filter
-    useUserStore.getState().setPermissions(['user:list', 'user:create', 'user:update', 'user:delete']);
+    useUserStore
+      .getState()
+      .setPermissions(['user:list', 'user:create', 'user:update', 'user:delete']);
     useUserStore.getState().setRoles(['admin']);
 
     renderPage();

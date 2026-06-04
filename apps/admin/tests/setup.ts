@@ -14,6 +14,6 @@
  */
 
 import '@testing-library/jest-dom';
-import { installLocalStorage } from './setup-local-storage.js';
+import { installLocalStorage } from './setup-local-storage.ts';
 
 installLocalStorage();

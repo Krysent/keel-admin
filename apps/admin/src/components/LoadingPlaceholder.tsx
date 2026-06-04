@@ -10,8 +10,8 @@
  *   页面级懒加载，配合 `<Suspense>` 与 `LoadingPlaceholder`
  */
 
-import React from 'react';
 import { Spin } from 'antd';
+import React from 'react';
 
 export interface LoadingPlaceholderProps {
   /** Optional tip text shown below the spinner. */
@@ -24,10 +24,7 @@ export interface LoadingPlaceholderProps {
  * A centered spinner placeholder displayed while a lazy route component
  * is being loaded. Designed to sit inside `<Suspense fallback={...}>`.
  */
-export const LoadingPlaceholder: React.FC<LoadingPlaceholderProps> = ({
-  tip,
-  height = '100%',
-}) => {
+export const LoadingPlaceholder: React.FC<LoadingPlaceholderProps> = ({ tip, height = '100%' }) => {
   return (
     <div
       style={{

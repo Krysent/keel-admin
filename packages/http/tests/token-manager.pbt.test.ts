@@ -36,16 +36,11 @@
  * can decide exactly when the in-flight refresh settles.
  */
 
-import { describe, expect, it } from 'vitest';
+import { createMemoryStorage, createStorage } from '@keel/utils';
 import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
 
-import { createMemoryStorage } from '@keel/utils';
-import {
-  createTokenManager,
-  NoRefreshTokenError,
-  type RefreshFn,
-} from '../src/token-manager.js';
-import { createStorage } from '@keel/utils';
+import { createTokenManager, NoRefreshTokenError, type RefreshFn } from '../src/token-manager.ts';
 
 /**
  * A tiny deferred — like `Promise.withResolvers()` but typed for the
@@ -275,31 +270,28 @@ describe('TokenManager single-flight refresh (PBT)', () => {
   // --------------------------------------------------------------------
   it('all callers reject with NoRefreshTokenError when no refresh token is held, and refreshFn is never called', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.integer({ min: 2, max: 16 }),
-        async (concurrency) => {
-          let calls = 0;
-          const refreshFn: RefreshFn = async () => {
-            calls += 1;
-            return { accessToken: 'never', refreshToken: 'never' };
-          };
+      fc.asyncProperty(fc.integer({ min: 2, max: 16 }), async (concurrency) => {
+        let calls = 0;
+        const refreshFn: RefreshFn = async () => {
+          calls += 1;
+          return { accessToken: 'never', refreshToken: 'never' };
+        };
 
-          const mgr = makeManager({ refreshFn });
-          // Note: no `mgr.set(...)` — manager has no tokens.
+        const mgr = makeManager({ refreshFn });
+        // Note: no `mgr.set(...)` — manager has no tokens.
 
-          const results = await Promise.allSettled(
-            Array.from({ length: concurrency }, () => mgr.refresh()),
-          );
+        const results = await Promise.allSettled(
+          Array.from({ length: concurrency }, () => mgr.refresh()),
+        );
 
-          expect(calls).toBe(0);
-          for (const r of results) {
-            expect(r.status).toBe('rejected');
-            if (r.status === 'rejected') {
-              expect(r.reason).toBeInstanceOf(NoRefreshTokenError);
-            }
+        expect(calls).toBe(0);
+        for (const r of results) {
+          expect(r.status).toBe('rejected');
+          if (r.status === 'rejected') {
+            expect(r.reason).toBeInstanceOf(NoRefreshTokenError);
           }
-        },
-      ),
+        }
+      }),
       { numRuns: 30 },
     );
   });

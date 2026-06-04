@@ -45,9 +45,10 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 
-import { BizError } from './biz-error.js';
-import { DEDUPE_HANDLE_KEY, installDedupe, type DedupeHandle } from './dedupe.js';
-import type { HttpFactoryOptions } from './types.js';
+import { BizError } from './biz-error.ts';
+import { DEDUPE_HANDLE_KEY, installDedupe, type DedupeHandle } from './dedupe.ts';
+
+import type { HttpFactoryOptions } from './types.ts';
 
 /** Marker added to a config so we don't infinite-loop on retry. */
 const RETRY_FLAG = '__keel_authRetried__' as const;
@@ -226,7 +227,7 @@ export function createHttp(options: HttpFactoryOptions): AxiosInstance {
         // request interceptor running again for tenant / locale headers.
         cfg.headers?.set?.('Authorization', `Bearer ${newAccess}`);
         return await instance.request(cfg as AxiosRequestConfig);
-      } catch (refreshErr) {
+      } catch (_refreshErr) {
         // Refresh failed — the manager already cleared state and called
         // `onAuthExpired`. Propagate the *original* 401 so callers see a
         // consistent error surface (`status === 401`) rather than a more
@@ -248,8 +249,6 @@ export function createHttp(options: HttpFactoryOptions): AxiosInstance {
  */
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
-  const match = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith(`${name}=`));
+  const match = document.cookie.split('; ').find((row) => row.startsWith(`${name}=`));
   return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
 }

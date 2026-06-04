@@ -5,8 +5,8 @@
  * curated as the package grows across tasks 4.1–4.4.
  */
 
-export { createHttp } from './create-http.js';
-export type { HttpFactoryOptions, RequestExtraConfig } from './types.js';
+export { createHttp } from './create-http.ts';
+export type { HttpFactoryOptions, RequestExtraConfig } from './types.ts';
 
 export {
   createTokenManager,
@@ -14,12 +14,8 @@ export {
   type RefreshFn,
   type TokenManager,
   type TokenManagerOptions,
-} from './token-manager.js';
+} from './token-manager.ts';
 
-export { BizError, isBizError } from './biz-error.js';
+export { BizError, isBizError } from './biz-error.ts';
 
-export {
-  computeFingerprint,
-  DEDUPE_HANDLE_KEY,
-  type DedupeHandle,
-} from './dedupe.js';
+export { computeFingerprint, DEDUPE_HANDLE_KEY, type DedupeHandle } from './dedupe.ts';

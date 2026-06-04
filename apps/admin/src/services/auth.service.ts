@@ -7,9 +7,9 @@
  * Validates: Requirements 4.1, 5.4
  */
 
-import type { TokenPair } from '@keel/types';
-
 import { http } from './http';
+
+import type { TokenPair } from '@keel/types';
 
 export interface LoginParams {
   username: string;
@@ -38,6 +38,5 @@ export const authService = {
    * POST /auth/logout — revoke the current refresh token server-side.
    * Errors are swallowed by the logout flow (best-effort revocation).
    */
-  logout: (): Promise<void> =>
-    http.post('/auth/logout') as unknown as Promise<void>,
+  logout: (): Promise<void> => http.post('/auth/logout') as unknown as Promise<void>,
 };

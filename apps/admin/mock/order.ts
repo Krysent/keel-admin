@@ -4,9 +4,9 @@
  * Validates: Requirements 11.1, 11.3, 11.4
  */
 
-import type { MockMethod } from 'vite-plugin-mock';
-
 import { wrap, wrapError, wrapPage } from './_utils';
+
+import type { MockMethod } from 'vite-plugin-mock';
 
 const mockOrders = [
   {
@@ -58,7 +58,11 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/orders',
     method: 'get',
-    response: ({ query }: { query: { page?: string; pageSize?: string; keyword?: string; status?: string } }) => {
+    response: ({
+      query,
+    }: {
+      query: { page?: string; pageSize?: string; keyword?: string; status?: string };
+    }) => {
       const page = Number(query.page) || 1;
       const pageSize = Number(query.pageSize) || 10;
       const keyword = query.keyword?.toLowerCase() ?? '';
@@ -96,7 +100,11 @@ const mockHandlers: MockMethod[] = [
   {
     url: '/api/orders',
     method: 'post',
-    response: ({ body }: { body: { sn: string; amount: number; status: string; customerName?: string } }) => {
+    response: ({
+      body,
+    }: {
+      body: { sn: string; amount: number; status: string; customerName?: string };
+    }) => {
       const newOrder = {
         id: String(mockOrders.length + 1),
         sn: body.sn,

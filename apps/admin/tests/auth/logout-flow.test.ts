@@ -7,13 +7,11 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { TokenPair } from '@keel/types';
-import type { TokenManager } from '@keel/http';
 
-import {
-  runLogoutFlow,
-  type LogoutDeps,
-} from '../../src/auth/logout-flow.js';
+import { runLogoutFlow, type LogoutDeps } from '../../src/auth/logout-flow.ts';
+
+import type { TokenManager } from '@keel/http';
+import type { TokenPair } from '@keel/types';
 
 function makeTokenManager(): TokenManager & { _stored: TokenPair | null } {
   let stored: TokenPair | null = { accessToken: 'a', refreshToken: 'r' };

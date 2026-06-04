@@ -38,20 +38,17 @@
  *   JS exception is thrown and the user gets useful feedback.
  */
 
-import { useEffect, useRef, useMemo, useState, type ReactNode } from 'react';
-import { Avatar, Dropdown, Layout, Menu } from 'antd';
 import * as AntIcons from '@ant-design/icons';
 import { RightOutlined, UserOutlined } from '@ant-design/icons';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Avatar, Dropdown, Layout, Menu } from 'antd';
+import { useEffect, useRef, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAppStore } from '../stores/app.store';
 import { useUserStore } from '../stores/user.store';
-import {
-  ancestorPaths,
-  buildMenuItems,
-  type MenuItem,
-} from './lib/menu-tree';
+
+import { ancestorPaths, buildMenuItems, type MenuItem } from './lib/menu-tree';
 import { useUserMenu } from './lib/use-user-menu';
 
 const { Sider: AntSider } = Layout;
@@ -66,9 +63,7 @@ const COLLAPSE_BREAKPOINT = 1024;
  */
 function resolveIcon(name: string | undefined): ReactNode {
   if (!name) return undefined;
-  const Icon = (AntIcons as unknown as Record<string, React.ComponentType>)[
-    name
-  ];
+  const Icon = (AntIcons as unknown as Record<string, React.ComponentType>)[name];
   return Icon ? <Icon /> : undefined;
 }
 
@@ -80,10 +75,7 @@ function resolveIcon(name: string | undefined): ReactNode {
 type AntMenuItems = NonNullable<React.ComponentProps<typeof Menu>['items']>;
 type AntMenuItem = AntMenuItems[number];
 
-function translateItems(
-  items: readonly MenuItem[],
-  t: (key: string) => string,
-): AntMenuItems {
+function translateItems(items: readonly MenuItem[], t: (key: string) => string): AntMenuItems {
   return items.map((it): AntMenuItem => {
     // Build the node incrementally so `exactOptionalPropertyTypes` is
     // happy — AntD's `MenuItem` shape rejects literal `undefined` for
@@ -104,7 +96,7 @@ function translateItems(
 export interface SiderProps {
   /** Extra inline styles merged onto the AntD Sider element. Used by
    * `BasicLayout` to inject sticky positioning (Requirement 22.14). */
-  style?: import('react').CSSProperties;
+  style?: CSSProperties;
 }
 
 export function Sider({ style }: SiderProps = {}): JSX.Element {
@@ -178,17 +170,12 @@ export function Sider({ style }: SiderProps = {}): JSX.Element {
   // Build the AntD-shaped item tree once per `menus` change. The
   // translation pass below is cheap and re-runs on language change.
   const baseItems = useMemo(() => buildMenuItems(menus), [menus]);
-  const translatedItems = useMemo(
-    () => translateItems(baseItems, t),
-    [baseItems, t],
-  );
+  const translatedItems = useMemo(() => translateItems(baseItems, t), [baseItems, t]);
 
   // Default open keys: ancestors of the current path. Stored as state
   // so the user can collapse/expand sub-menus freely after first paint
   // without us forcing them open again on every re-render.
-  const [openKeys, setOpenKeys] = useState<string[]>(() =>
-    ancestorPaths(menus, location.pathname),
-  );
+  const [openKeys, setOpenKeys] = useState<string[]>(() => ancestorPaths(menus, location.pathname));
 
   // Selected key tracks the URL exactly so deep-linking highlights the
   // right leaf even when the user navigates by typing.
@@ -209,8 +196,7 @@ export function Sider({ style }: SiderProps = {}): JSX.Element {
   // logged-in user's display name + email (or a localised "Guest"
   // fallback when the profile hasn't loaded yet).
   const displayName =
-    userInfo?.displayName ??
-    t('header.user.guest', { defaultValue: isZhCN ? '访客' : 'Guest' });
+    userInfo?.displayName ?? t('header.user.guest', { defaultValue: isZhCN ? '访客' : 'Guest' });
   const subtitle = userInfo?.email ?? userInfo?.username ?? '';
 
   return (
@@ -242,9 +228,7 @@ export function Sider({ style }: SiderProps = {}): JSX.Element {
           <span className="keel-sider__brand-logo" aria-hidden>
             <img src="/keel-admin-logo.png" alt="" />
           </span>
-          {!collapsed && (
-            <span className="keel-sider__brand-name">Keel Admin</span>
-          )}
+          {!collapsed && <span className="keel-sider__brand-name">Keel Admin</span>}
         </div>
 
         {/* Menu region — the only scrollable part of the sider. */}
@@ -283,9 +267,7 @@ export function Sider({ style }: SiderProps = {}): JSX.Element {
               <>
                 <span className="keel-sider__profile-meta">
                   <span className="keel-sider__profile-name">{displayName}</span>
-                  {subtitle && (
-                    <span className="keel-sider__profile-sub">{subtitle}</span>
-                  )}
+                  {subtitle && <span className="keel-sider__profile-sub">{subtitle}</span>}
                 </span>
                 <RightOutlined className="keel-sider__profile-arrow" />
               </>

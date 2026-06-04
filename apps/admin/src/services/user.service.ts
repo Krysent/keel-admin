@@ -8,9 +8,9 @@
  * Validates: Requirements 4.1, 5.4
  */
 
-import type { PageQuery, PageResult, UserInfo } from '@keel/types';
-
 import { http } from './http';
+
+import type { PageQuery, PageResult, UserInfo } from '@keel/types';
 
 export interface UserListQuery extends PageQuery {
   keyword?: string;
@@ -36,8 +36,7 @@ export const userService = {
   /**
    * GET /user/profile — currently authenticated user's profile.
    */
-  fetchProfile: (): Promise<UserInfo> =>
-    http.get('/user/profile') as unknown as Promise<UserInfo>,
+  fetchProfile: (): Promise<UserInfo> => http.get('/user/profile') as unknown as Promise<UserInfo>,
 
   /**
    * GET /user/permissions — permission codes the current user holds.
@@ -66,6 +65,5 @@ export const userService = {
   /**
    * DELETE /users/:id — remove a user.
    */
-  remove: (id: string): Promise<void> =>
-    http.delete(`/users/${id}`) as unknown as Promise<void>,
+  remove: (id: string): Promise<void> => http.delete(`/users/${id}`) as unknown as Promise<void>,
 };

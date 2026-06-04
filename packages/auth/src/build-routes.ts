@@ -38,22 +38,17 @@
 import { createElement } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import type { MenuNode } from '@keel/types';
+import { evaluatePermission } from './evaluate.ts';
 
-import { evaluatePermission } from './evaluate.js';
-import type { PermissionContext } from './types.js';
+import type { PermissionContext } from './types.ts';
+import type { MenuNode } from '@keel/types';
 
 /**
  * The four required fallback paths. Listed here as a `readonly` tuple so
  * the test (and any consumer wanting to override) can iterate over the
  * canonical list without hard-coding strings in two places.
  */
-export const STATIC_FALLBACK_PATHS = [
-  '/login',
-  '/exception/403',
-  '/exception/404',
-  '*',
-] as const;
+export const STATIC_FALLBACK_PATHS = ['/login', '/exception/403', '/exception/404', '*'] as const;
 
 export type StaticFallbackPath = (typeof STATIC_FALLBACK_PATHS)[number];
 
@@ -84,16 +79,12 @@ export type StaticFallbackPath = (typeof STATIC_FALLBACK_PATHS)[number];
 export interface BuildRoutesContext {
   permissions: ReadonlySet<string>;
   predicate?: PermissionContext['predicate'];
-  resolveComponent?: (
-    componentKey: string,
-  ) => RouteObject['element'] | null;
+  resolveComponent?: (componentKey: string) => RouteObject['element'] | null;
   guard?: (
     element: RouteObject['element'],
     permissionCodes?: readonly string[],
   ) => RouteObject['element'];
-  fallbackElements?: Partial<
-    Record<StaticFallbackPath, RouteObject['element']>
-  >;
+  fallbackElements?: Partial<Record<StaticFallbackPath, RouteObject['element']>>;
 }
 
 /**
@@ -106,10 +97,7 @@ export interface BuildRoutesContext {
  * We thread `predicate` through so route filtering and `<Auth>` checks
  * agree on what "having a code" means in ABAC mode.
  */
-function passesPermission(
-  node: MenuNode,
-  ctx: BuildRoutesContext,
-): boolean {
+function passesPermission(node: MenuNode, ctx: BuildRoutesContext): boolean {
   // Build the PermissionContext narrowly so `exactOptionalPropertyTypes`
   // doesn't object to `predicate: undefined` on a property whose type
   // is "function only" (vs "function | undefined"). Same rule applies
@@ -167,9 +155,7 @@ function buildRecursive(
       // configured" from "component failed to resolve".
       if (node.component !== undefined && ctx.resolveComponent) {
         const element = ctx.resolveComponent(node.component) ?? null;
-        route.element = ctx.guard
-          ? ctx.guard(element, node.permissionCodes)
-          : element;
+        route.element = ctx.guard ? ctx.guard(element, node.permissionCodes) : element;
       }
 
       // Requirement 4.7 — `hidden` is a UI concern; we still recurse and
@@ -206,9 +192,6 @@ function buildRecursive(
  * static fallback routes (Requirement 4.8). Pure: no side effects on
  * `menus`, `ctx`, or any contained set.
  */
-export function buildRoutes(
-  menus: MenuNode[],
-  ctx: BuildRoutesContext,
-): RouteObject[] {
+export function buildRoutes(menus: MenuNode[], ctx: BuildRoutesContext): RouteObject[] {
   return buildRecursive(menus, ctx, true);
 }
